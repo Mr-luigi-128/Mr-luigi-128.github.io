@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario FPS Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111; /* Dark background */
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .game-container {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            border-radius: 8px;
+            overflow: hidden;
+            line-height: 0; /* Prevents tiny gaps at the bottom of the iframe */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mario FPS</h1>
+
+    <div class="game-container">
+        <!-- Your game iframe goes here -->
+        <iframe src="https://funhtml5games.com" style="width:640px;height:480px;border:none;" frameborder="0" scrolling="no"></iframe>
+    </div>
+
+</body>
+</html>
