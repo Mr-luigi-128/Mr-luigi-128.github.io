@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Tetris</title>
+    <title>Retro Neon Tetris</title>
     <style>
         body {
-            background-color: #111;
+            background-color: #111424;
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -17,141 +17,238 @@
             margin: 0;
             overflow: hidden;
         }
+
         h1 {
-            margin-bottom: 10px;
-            color: #ff0055;
-            text-shadow: 0 0 10px #ff0055;
+            color: #00f0ff;
+            text-shadow: 0 0 10px #00f0ff;
+            margin-bottom: 20px;
         }
-        #game-container {
+
+        .game-container {
             display: flex;
+            align-items: flex-start;
             gap: 20px;
-            background: #222;
+            background: #1a1d36;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), border: 2px solid #333;
+            border: 4px solid #ff007f;
+            box-shadow: 0 0 20px #ff007f;
         }
+
         canvas {
-            background-color: #000;
-            border: 4px solid #444;
+            background-color: #0d0f1d;
+            border: 2px solid #00f0ff;
+            box-shadow: 0 0 10px #00f0ff;
         }
-        #sidebar {
+
+        .sidebar {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-width: 120px;
+            height: 400px;
+            min-width: 150px;
         }
-        .info-box {
-            background: #111;
-            padding: 15px;
+
+        .box {
+            background: #0d0f1d;
+            border: 2px solid #ff007f;
             border-radius: 5px;
-            border: 1px solid #444;
+            padding: 15px;
             text-align: center;
+            box-shadow: 0 0 5px #ff007f;
         }
-        .info-box h2 {
-            margin: 0 0 5px 0;
-            font-size: 14px;
-            color: #00ffcc;
+
+        .box h2 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: #ff007f;
+            text-transform: uppercase;
         }
-        .info-box p {
-            margin: 0;
-            font-size: 24px;
+
+        .score-val {
+            font-size: 1.8rem;
             font-weight: bold;
+            color: #00f0ff;
+            text-shadow: 0 0 5px #00f0ff;
         }
-        #controls {
-            font-size: 11px;
+
+        #previewCanvas {
+            background-color: #0d0f1d;
+            border: 1px solid #333;
+            margin-top: 5px;
+        }
+
+        .controls {
+            margin-top: 10px;
+            font-size: 0.8rem;
             color: #aaa;
+            text-align: left;
             line-height: 1.4;
         }
     </style>
 </head>
 <body>
 
-    <h1>TETRIS</h1>
-    
-    <div id="game-container">
-        <!-- The 10x20 Tetris Grid -->
-        <canvas id="tetris" width="240" height="480"></canvas>
-        
-        <div id="sidebar">
-            <div class="info-box">
-                <h2>SCORE</h2>
-                <p id="score">0</p>
+    <h1>NEON TETRIS</h1>
+
+    <div class="game-container">
+        <!-- Main Game Board -->
+        <canvas id="tetris" width="240" height="400"></canvas>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="box">
+                <h2>Score</h2>
+                <div id="score" class="score-val">0</div>
             </div>
-            
-            <div id="controls" class="info-box">
-                <h2>CONTROLS</h2>
-                <div>← / → : Move</div>
-                <div>↑ : Rotate</div>
-                <div>↓ : Soft Drop</div>
+
+            <div class="box">
+                <h2>Next</h2>
+                <canvas id="previewCanvas" width="96" height="96"></canvas>
+            </div>
+
+            <div class="box controls">
+                <h2>Controls</h2>
+                <div>&larr; / &rarr; : Move</div>
+                <div>&uarr; : Rotate</div>
+                <div>&darr; : Soft Drop</div>
                 <div>Space : Hard Drop</div>
             </div>
         </div>
     </div>
 
+    <!-- JavaScript script tags will go directly here below -->
 <script>
     const canvas = document.getElementById('tetris');
     const context = canvas.getContext('2d');
-    const scoreElement = document.getElementById('score');
+    context.scale(20, 20); // Scales 1 unit in the matrix to a 20px grid tile
 
-    // Scale blocks to 24px (10x20 grid = 240x480 canvas)
-    context.scale(24, 24);
+    const previewCanvas = document.getElementById('previewCanvas');
+    const previewContext = previewCanvas.getContext('2d');
+    previewContext.scale(24, 24); // Scales for the 4x4 sidebar preview window
 
-    // Arena Matrix (10 columns, 20 rows)
-    const arena = createMatrix(10, 20);
-
-    // Tetromino Colors
-    const colors = [
-        null,
-        '#FF0D72', // T
-        '#0DC2FF', // I
-        '#0DFF72', // Z
-        '#F538FF', // S
-        '#FF8E0D', // J
-        '#FFE138', // L
-        '#3877FF'  // O
-    ];
-
-    // Tetromino Shapes
+    // Structural blueprints of the 7 classic Tetromino configurations
     function createPiece(type) {
-        if (type === 'I') return [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]];
-        if (type === 'L') return [[0,2,0],[0,2,0],[0,2,2]];
-        if (type === 'J') return [[0,3,0],[0,3,0],[3,3,0]];
-        if (type === 'O') return [[4,4],[4,4]];
-        if (type === 'Z') return [[5,5,0],[0,5,5],[0,0,0]];
-        if (type === 'S') return [[0,6,6],[6,6,0],[0,0,0]];
-        if (type === 'T') return [[0,7,0],[7,7,7],[0,0,0]];
+        if (type === 'T') {
+            return [,
+ ,
+ ,
+            ];
+        } else if (type === 'O') {
+            return [,
+ ,
+            ];
+        } else if (type === 'L') {
+            return [,
+ ,
+ ,
+            ];
+        } else if (type === 'J') {
+            return [,
+ ,
+ ,
+            ];
+        } else if (type === 'I') {
+            return [,
+ ,
+ ,
+ ,
+            ];
+        } else if (type === 'S') {
+            return [,
+ ,
+ ,
+            ];
+        } else if (type === 'Z') {
+            return [,
+ ,
+ ,
+            ];
+        }
     }
 
+    // Color palettes mapped directly to the block indices above
+    const colors = [
+        null,
+        '#ff007f', // 1: T - Neon Pink
+        '#00f0ff', // 2: O - Neon Cyan
+        '#ffb700', // 3: L - Neon Orange
+        '#003cff', // 4: J - Neon Blue
+        '#00ff66', // 5: I - Neon Green
+        '#ff00ff', // 6: S - Neon Magenta
+        '#ff3300'  // 7: Z - Neon Red
+    ];
+
+    // Grid matrix generator tracking game positions
     function createMatrix(w, h) {
         const matrix = [];
-        while (h--) { matrix.push(new Array(w).fill(0)); }
+        while (h--) {
+            matrix.push(new Array(w).fill(0));
+        }
         return matrix;
     }
 
-    // Drawing Logic
-    function drawMatrix(matrix, offset) {
+    // Neon grid boundary lines
+    function drawGrid(ctx, w, h) {
+        ctx.strokeStyle = '#181b32';
+        ctx.lineWidth = 0.05;
+        for (let i = 0; i < w; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, h);
+            ctx.stroke();
+        }
+        for (let j = 0; j < h; j++) {
+            ctx.beginPath();
+            ctx.moveTo(0, j);
+            ctx.lineTo(w, j);
+            ctx.stroke();
+        }
+    }
+
+    // Main grid pixel box drawing logic
+    function drawMatrix(matrix, offset, ctx) {
         matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
-                    context.fillStyle = colors[value];
-                    context.fillRect(x + offset.x, y + offset.y, 1, 1);
-                    // Subtle block borders
-                    context.strokeStyle = '#111';
-                    context.lineWidth = 0.05;
-                    context.strokeRect(x + offset.x, y + offset.y, 1, 1);
+                    ctx.fillStyle = colors[value];
+                    ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
+                    
+                    // Box inner reflection accent lines
+                    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                    ctx.lineWidth = 0.05;
+                    ctx.strokeRect(x + offset.x, y + offset.y, 1, 1);
                 }
             });
         });
     }
 
+    // Redraw loop execution framework
     function draw() {
-        context.fillStyle = '#000';
+        context.fillStyle = '#0d0f1d';
         context.fillRect(0, 0, canvas.width, canvas.height);
-        drawMatrix(arena, {x: 0, y: 0});
-        drawMatrix(player.matrix, player.pos);
+
+        drawGrid(context, 12, 20);
+        drawMatrix(arena, {x: 0, y: 0}, context);
+        drawMatrix(player.matrix, player.pos, context);
     }
 
-    // Merge moving piece into the static arena grid
+    // Next piece dashboard display window loop
+    function drawPreview() {
+        previewContext.fillStyle = '#0d0f1d';
+        previewContext.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+        const nextMatrix = createPiece(nextPieceType);
+        // Visual padding to center varying length shapes
+        const offset = {
+            x: (4 - nextMatrix.length) / 2,
+            y: (4 - nextMatrix.length) / 2
+        };
+        
+        drawMatrix(nextMatrix, offset, previewContext);
+    }
+
+    // Locks dynamic dropping matrix rows into permanent board bounds
     function merge(arena, player) {
         player.matrix.forEach((row, y) => {
             row.forEach((value, x) => {
@@ -162,7 +259,25 @@
         });
     }
 
-    // Collision Detection
+    // Scans the playing field to purge completed horizontal point rows
+    function arenaSweep() {
+        let rowCount = 1;
+        outer: for (let y = arena.length - 1; y > 0; --y) {
+            for (let x = 0; x < arena[y].length; ++x) {
+                if (arena[y][x] === 0) {
+                    continue outer;
+                }
+            }
+            const row = arena.splice(y, 1).fill(0);
+            arena.unshift(row);
+            ++y;
+
+            player.score += rowCount * 10;
+            rowCount *= 2;
+        }
+    }
+
+    // Rigid object and side-wall edge collision checking algorithms
     function collide(arena, player) {
         const [m, o] = [player.matrix, player.pos];
         for (let y = 0; y < m.length; ++y) {
@@ -177,37 +292,45 @@
         return false;
     }
 
-    // Clear completed lines and update score
-    function arenaSweep() {
-        let rowCount = 1;
-        outer: for (let y = arena.length - 1; y > 0; --y) {
-            for (let x = 0; x < arena[y].length; ++x) {
-                if (arena[y][x] === 0) {
-                    continue outer;
-                }
-            }
-            const row = arena.splice(y, 1)[0].fill(0);
-            arena.unshift(row);
-            ++y;
+    const arena = createMatrix(12, 20);
 
-            player.score += rowCount * 10;
-            rowCount *= 2;
-        }
+    const player = {
+        pos: {x: 0, y: 0},
+        matrix: null,
+        score: 0,
+    };
+
+    let nextPieceType = '';
+
+    function getRandomPieceType() {
+        const pieces = 'ILJOZST'; // Explicitly set string character index entries 
+        return pieces[pieces.length * Math.random() | 0];
     }
 
-    // Movement and Mechanics
-    function playerDrop() {
-        player.pos.y++;
+    // Spawns subsequent active puzzle piece items smoothly 
+    function playerReset() {
+        if (!nextPieceType) {
+            nextPieceType = getRandomPieceType();
+        }
+        
+        player.matrix = createPiece(nextPieceType);
+        nextPieceType = getRandomPieceType();
+        
+        player.pos.y = 0;
+        player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+
+        // Instant verification check for lose constraints
         if (collide(arena, player)) {
-            player.pos.y--;
-            merge(arena, player);
-            playerReset();
-            arenaSweep();
+            alert("Game Over! Press OK to reset.");
+            arena.forEach(row => row.fill(0));
+            player.score = 0;
             updateScore();
         }
-        dropCounter = 0;
+        
+        drawPreview();
     }
 
+    // Column offset displacement controller logic
     function playerMove(dir) {
         player.pos.x += dir;
         if (collide(arena, player)) {
@@ -215,20 +338,27 @@
         }
     }
 
-    function playerReset() {
-        const pieces = 'ILJ0ZST';
-        player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
-        player.pos.y = 0;
-        player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
-        
-        // Game Over condition
-        if (collide(arena, player)) {
-            arena.forEach(row => row.fill(0));
-            player.score = 0;
-            updateScore();
+    // Rotates shape vectors over horizontal matrix cells
+    function rotate(matrix, dir) {
+        for (let y = 0; y < matrix.length; ++y) {
+            for (let x = 0; x < y; ++x) {
+                [
+                    matrix[x][y],
+                    matrix[y][x],
+                ] = [
+                    matrix[y][x],
+                    matrix[x][y],
+                ];
+            }
+        }
+        if (dir > 0) {
+            matrix.forEach(row => row.reverse());
+        } else {
+            matrix.reverse();
         }
     }
 
+    // Wall-kick checks to keep rotated shapes inside bounds
     function playerRotate(dir) {
         const pos = player.pos.x;
         let offset = 1;
@@ -244,23 +374,41 @@
         }
     }
 
-    function rotate(matrix, dir) {
-        for (let y = 0; y < matrix.length; ++y) {
-            for (let x = 0; x < y; ++x) {
-                [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
-            }
+    // Standard baseline ticking vertical dropping logic frame loop
+    function playerDrop() {
+        player.pos.y++;
+        if (collide(arena, player)) {
+            player.pos.y--;
+            merge(arena, player);
+            playerReset();
+            arenaSweep();
+            updateScore();
         }
-        if (dir > 0) {
-            matrix.forEach(row => row.reverse());
-        } else {
-            matrix.reverse();
+        dropCounter = 0;
+    }
+
+    // Snap drops piece instantly using the spacebar key mapping
+    function playerHardDrop() {
+        while (!collide(arena, player)) {
+            player.pos.y++;
         }
+        player.pos.y--; 
+        merge(arena, player);
+        playerReset();
+        arenaSweep();
+        updateScore();
+        dropCounter = 0;
+    }
+
+    function updateScore() {
+        document.getElementById('score').innerText = player.score;
     }
 
     let dropCounter = 0;
-    let dropInterval = 1000; // Drop speed in milliseconds
+    let dropInterval = 1000; // Drop step speed set at 1 second intervals initially
     let lastTime = 0;
 
+    // Realtime canvas animation render engine
     function update(time = 0) {
         const deltaTime = time - lastTime;
         lastTime = time;
@@ -274,17 +422,7 @@
         requestAnimationFrame(update);
     }
 
-    function updateScore() {
-        scoreElement.innerText = player.score;
-    }
-
-    const player = {
-        pos: {x: 0, y: 0},
-        matrix: null,
-        score: 0,
-    };
-
-    // Desktop Key Mapping
+    // Global keyboard control layout hooks
     document.addEventListener('keydown', event => {
         if (event.key === 'ArrowLeft') {
             playerMove(-1);
@@ -295,22 +433,17 @@
         } else if (event.key === 'ArrowUp') {
             playerRotate(1);
         } else if (event.key === ' ') {
-            // Hard drop
-            while (!collide(arena, player)) {
-                player.pos.y++;
-            }
-            player.pos.y--;
-            merge(arena, player);
-            playerReset();
-            arenaSweep();
-            updateScore();
+            event.preventDefault(); // Prevents web-browser frame scrolling default loops
+            playerHardDrop();
         }
     });
 
-    // Initialize Game
+    // Run Engine
     playerReset();
     updateScore();
     update();
 </script>
+
+
 </body>
 </html>
