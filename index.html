@@ -51,19 +51,19 @@
         .box {
             background: #eee;
             border: 2px solid #333;
-            padding: 15px;
+            padding: 12px;
             text-align: center;
         }
 
         .box h2 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
+            margin: 0 0 5px 0;
+            font-size: 0.9rem;
             color: #333;
             text-transform: uppercase;
         }
 
         .score-val {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: bold;
             color: #111;
         }
@@ -75,7 +75,7 @@
         }
 
         .controls {
-            margin-top: 10px;
+            margin-top: 5px;
             font-size: 0.8rem;
             color: #555;
             text-align: left;
@@ -96,6 +96,11 @@
             <div class="box">
                 <h2>Score</h2>
                 <div id="score" class="score-val">0</div>
+            </div>
+
+            <div class="box">
+                <h2>Level</h2>
+                <div id="level" class="score-val">1</div>
             </div>
 
             <div class="box">
@@ -226,6 +231,7 @@
         });
     }
 
+    // Scans completed rows, awards points, and triggers speed changes
     function arenaSweep() {
         let rowCount = 1;
         outer: for (let y = arena.length - 1; y > 0; --y) {
@@ -240,6 +246,20 @@
 
             player.score += rowCount * 10;
             rowCount *= 2;
+        }
+        
+        updateSpeedAndLevel();
+    }
+
+    // Progress gravity speed tiers every 50 points
+    function updateSpeedAndLevel() {
+        const calculatedLevel = Math.floor(player.score / 50) + 1;
+        if (calculatedLevel !== player.level) {
+            player.level = calculatedLevel;
+            document.getElementById('level').innerText = player.level;
+            
+            // Accelerates physics cadence loop (minimum threshold capped at 100ms)
+            dropInterval = Math.max(1000 - (player.level - 1) * 100, 100);
         }
     }
 
@@ -263,6 +283,7 @@
         pos: {x: 0, y: 0},
         matrix: null,
         score: 0,
+        level: 1
     };
 
     let nextPieceType = '';
@@ -287,7 +308,10 @@
             alert("Game Over! Press OK to reset.");
             arena.forEach(row => row.fill(0));
             player.score = 0;
+            player.level = 1;
+            dropInterval = 1000;
             updateScore();
+            document.getElementById('level').innerText = player.level;
         }
         
         drawPreview();
@@ -346,11 +370,15 @@
         dropCounter = 0;
     }
 
+    // Fixed Hard Drop: Clamps movement vector safety thresholds before floor boundaries trigger
     function playerHardDrop() {
+        if (collide(arena, player)) return;
+
         while (!collide(arena, player)) {
             player.pos.y++;
         }
-        player.pos.y--; 
+        player.pos.y--; // Correct step shift back inside wall frame arrays
+        
         merge(arena, player);
         playerReset();
         arenaSweep();
