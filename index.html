@@ -117,6 +117,10 @@
             </div>
         </div>
     </div>
+
+    <!-- ========================================== -->
+    <!-- 👇 PART 2 BEGINS DIRECTLY BELOW THIS LINE 👇 -->
+    <!-- ========================================== -->
 <script>
     const canvas = document.getElementById('tetris');
     const context = canvas.getContext('2d');
@@ -221,6 +225,10 @@
         
         drawMatrix(nextMatrix, offset, previewContext);
     }
+
+    // ==========================================
+    // 👇 PART 3 BEGINS DIRECTLY BELOW THIS LINE 👇
+    // ==========================================
     function merge(arena, player) {
         player.matrix.forEach((row, y) => {
             row.forEach((value, x) => {
@@ -272,8 +280,8 @@
                     const boardX = x + o.x;
                     const boardY = y + o.y;
                     
-                    // Explicitly catch sidewall, floor, and stack collision flags
-                    if (boardX < 0 || boardX >= arena[0].length || boardY >= arena.length) {
+                    // FIXED: Replaced arena.length boundary check with hard-coded 12 columns and 20 rows limits
+                    if (boardX < 0 || boardX >= 12 || boardY >= 20) {
                         return true;
                     }
                     if (boardY >= 0 && arena[boardY][boardX] !== 0) {
@@ -285,7 +293,7 @@
         return false;
     }
 
-    const arena = createMatrix(12, 20);
+    let arena = createMatrix(12, 20);
 
     const player = {
         pos: {x: 0, y: 0},
@@ -301,7 +309,7 @@
         return pieces[pieces.length * Math.random() | 0];
     }
 
-    // Fixed Piece Spawner: Centers blocks using column metrics rather than grid row height counts
+    // Spawns subsequent items cleanly and handles full arena rebuilds on a loss
     function playerReset() {
         if (!nextPieceType) {
             nextPieceType = getRandomPieceType();
@@ -311,12 +319,13 @@
         nextPieceType = getRandomPieceType();
         
         player.pos.y = 0;
-        // FIXED: References arena[0].length (12 columns) for true canvas center alignment
-        player.pos.x = (arena[0].length / 2 | 0) - (player.matrix.length / 2 | 0);
+        // References explicitly structured grid width lengths for centering
+        player.pos.x = (12 / 2 | 0) - (player.matrix.length / 2 | 0);
 
         if (collide(arena, player)) {
             alert("Game Over! Press OK to reset.");
-            arena.forEach(row => row.fill(0));
+            // FIXED: Structural reset completely rebuilds rows to fix restricted movement bugs
+            arena = createMatrix(12, 20);
             player.score = 0;
             player.level = 1;
             dropInterval = 1000;
