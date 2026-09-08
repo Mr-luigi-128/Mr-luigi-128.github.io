@@ -121,55 +121,37 @@
     const previewContext = previewCanvas.getContext('2d');
     previewContext.scale(24, 24); 
 
+    // Robust blueprint matrix generator using clean visual string definitions
     function createPiece(type) {
+        let definition = '';
         if (type === 'T') {
-            return [,
- ,
- ,
-            ];
+            definition = '010|111|000';
         } else if (type === 'O') {
-            return [,
- ,
-            ];
+            definition = '22|22';
         } else if (type === 'L') {
-            return [,
- ,
- ,
-            ];
+            definition = '003|333|000';
         } else if (type === 'J') {
-            return [,
- ,
- ,
-            ];
+            definition = '400|444|000';
         } else if (type === 'I') {
-            return [,
- ,
- ,
- ,
-            ];
+            definition = '0000|5555|0000|0000';
         } else if (type === 'S') {
-            return [,
- ,
- ,
-            ];
+            definition = '066|660|000';
         } else if (type === 'Z') {
-            return [,
- ,
- ,
-            ];
+            definition = '770|077|000';
         }
+        return definition.split('|').map(row => row.split('').map(Number));
     }
 
-    // Classic Game Boy / NES inspired solid palette colors
+    // Classic solid retro palette colors
     const colors = [
         null,
-        '#a500ff', // T - Purple
-        '#eeee00', // O - Yellow
-        '#ffaa00', // L - Orange
-        '#0055ff', // J - Blue
-        '#00ddff', // I - Cyan
-        '#00ff00', // S - Green
-        '#ff0000'  // Z - Red
+        '#a500ff', // 1: T - Purple
+        '#eeee00', // 2: O - Yellow
+        '#ffaa00', // 3: L - Orange
+        '#0055ff', // 4: J - Blue
+        '#00ddff', // 5: I - Cyan
+        '#00ff00', // 6: S - Green
+        '#ff0000'  // 7: Z - Red
     ];
 
     function createMatrix(w, h) {
@@ -234,7 +216,6 @@
         
         drawMatrix(nextMatrix, offset, previewContext);
     }
-
     function merge(arena, player) {
         player.matrix.forEach((row, y) => {
             row.forEach((value, x) => {
@@ -365,7 +346,6 @@
         dropCounter = 0;
     }
 
-    // Spacebar immediate hard drop functionality
     function playerHardDrop() {
         while (!collide(arena, player)) {
             player.pos.y++;
@@ -418,7 +398,5 @@
     updateScore();
     update();
 </script>
-
-
 </body>
 </html>
