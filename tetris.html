@@ -117,6 +117,10 @@
             </div>
         </div>
     </div>
+
+    <!-- ========================================== -->
+    <!-- 👇 PART 2 BEGINS DIRECTLY BELOW THIS LINE 👇 -->
+    <!-- ========================================== -->
 <script>
     const canvas = document.getElementById('tetris');
     const context = canvas.getContext('2d');
@@ -126,6 +130,7 @@
     const previewContext = previewCanvas.getContext('2d');
     previewContext.scale(24, 24); 
 
+    // Robust blueprint matrix generator using clean visual string definitions
     function createPiece(type) {
         let definition = '';
         if (type === 'T') {
@@ -146,6 +151,7 @@
         return definition.split('|').map(row => row.split('').map(Number));
     }
 
+    // Classic solid retro palette colors
     const colors = [
         null,
         '#a500ff', // 1: T - Purple
@@ -189,6 +195,7 @@
                     ctx.fillStyle = colors[value];
                     ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
                     
+                    // Traditional black retro block borders
                     ctx.strokeStyle = '#000';
                     ctx.lineWidth = 0.08;
                     ctx.strokeRect(x + offset.x, y + offset.y, 1, 1);
@@ -218,7 +225,11 @@
         
         drawMatrix(nextMatrix, offset, previewContext);
     }
- function merge(arena, player) {
+
+    // ==========================================
+    // 👇 PART 3 BEGINS DIRECTLY BELOW THIS LINE 👇
+    // ==========================================
+function merge(arena, player) {
         player.matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
@@ -228,6 +239,7 @@
         });
     }
 
+    // Scans completed rows, awards points, and updates speed scaling tiers
     function arenaSweep() {
         let rowCount = 1;
         outer: for (let y = arena.length - 1; y > 0; --y) {
@@ -247,15 +259,19 @@
         updateSpeedAndLevel();
     }
 
+    // Accelerates physics gravity loops every 50 points
     function updateSpeedAndLevel() {
         const calculatedLevel = Math.floor(player.score / 50) + 1;
         if (calculatedLevel !== player.level) {
             player.level = calculatedLevel;
             document.getElementById('level').innerText = player.level;
+            
+            // Speed up tracking interval multiplier (minimum velocity cap set at 100ms)
             dropInterval = Math.max(1000 - (player.level - 1) * 100, 100);
         }
     }
 
+    // Fully fortified explicit boundary wall collision handler logic
     function collide(arena, player) {
         const [m, o] = [player.matrix, player.pos];
         for (let y = 0; y < m.length; ++y) {
@@ -264,6 +280,7 @@
                     const boardX = x + o.x;
                     const boardY = y + o.y;
                     
+                    // Fixed: Strictly catches sidebar limits and stack collision flags
                     if (boardX < 0 || boardX >= 12 || boardY >= 20) {
                         return true;
                     }
@@ -292,6 +309,7 @@
         return pieces[pieces.length * Math.random() | 0];
     }
 
+    // Spawns subsequent items cleanly and handles full arena rebuilds on a loss
     function playerReset() {
         if (!nextPieceType) {
             nextPieceType = getRandomPieceType();
@@ -301,6 +319,7 @@
         nextPieceType = getRandomPieceType();
         
         player.pos.y = 0;
+        // References explicitly structured grid width lengths for centering
         player.pos.x = (12 / 2 | 0) - (player.matrix.length / 2 | 0);
 
         if (collide(arena, player)) {
@@ -342,17 +361,22 @@
         }
     }
 
+    // Fixed Rotation: Separates temporary wall-kicks from triggering instant game over constraints
     function playerRotate(dir) {
         const pos = player.pos.x;
         let offset = 1;
         rotate(player.matrix, dir);
+        
+        // Push the piece away from obstacles step-by-step to check if it fits
         while (collide(arena, player)) {
             player.pos.x += offset;
             offset = -(offset + (offset > 0 ? 1 : -1));
+            
+            // If it cannot fit anywhere, safely undo the rotation without ending the game
             if (offset > player.matrix.length) {
                 rotate(player.matrix, -dir);
                 player.pos.x = pos;
-                return;
+                return; 
             }
         }
     }
@@ -369,6 +393,7 @@
         dropCounter = 0;
     }
 
+    // Hard drop handler loop protected against out of bounds errors
     function playerHardDrop() {
         if (collide(arena, player)) return;
 
