@@ -231,7 +231,7 @@
         });
     }
 
-    // Scans completed rows, awards points, and triggers speed changes
+    // Scans completed rows, awards points, and updates speed scaling tiers
     function arenaSweep() {
         let rowCount = 1;
         outer: for (let y = arena.length - 1; y > 0; --y) {
@@ -251,26 +251,34 @@
         updateSpeedAndLevel();
     }
 
-    // Progress gravity speed tiers every 50 points
+    // Accelerates physics gravity loops every 50 points
     function updateSpeedAndLevel() {
         const calculatedLevel = Math.floor(player.score / 50) + 1;
         if (calculatedLevel !== player.level) {
             player.level = calculatedLevel;
             document.getElementById('level').innerText = player.level;
             
-            // Accelerates physics cadence loop (minimum threshold capped at 100ms)
+            // Speed up tracking interval multiplier (minimum velocity cap set at 100ms)
             dropInterval = Math.max(1000 - (player.level - 1) * 100, 100);
         }
     }
 
+    // Fully fortified explicit boundary wall collision handler logic
     function collide(arena, player) {
         const [m, o] = [player.matrix, player.pos];
         for (let y = 0; y < m.length; ++y) {
             for (let x = 0; x < m[y].length; ++x) {
-                if (m[y][x] !== 0 &&
-                   (arena[y + o.y] &&
-                    arena[y + o.y][x + o.x]) !== 0) {
-                    return true;
+                if (m[y][x] !== 0) {
+                    const boardX = x + o.x;
+                    const boardY = y + o.y;
+                    
+                    // Explicitly catch sidewall, floor, and stack collision flags
+                    if (boardX < 0 || boardX >= arena[0].length || boardY >= arena.length) {
+                        return true;
+                    }
+                    if (boardY >= 0 && arena[boardY][boardX] !== 0) {
+                        return true;
+                    }
                 }
             }
         }
@@ -293,6 +301,7 @@
         return pieces[pieces.length * Math.random() | 0];
     }
 
+    // Fixed Piece Spawner: Centers blocks using column metrics rather than grid row height counts
     function playerReset() {
         if (!nextPieceType) {
             nextPieceType = getRandomPieceType();
@@ -302,7 +311,8 @@
         nextPieceType = getRandomPieceType();
         
         player.pos.y = 0;
-        player.pos.x = (arena.length / 2 | 0) - (player.matrix.length / 2 | 0);
+        // FIXED: References arena[0].length (12 columns) for true canvas center alignment
+        player.pos.x = (arena[0].length / 2 | 0) - (player.matrix.length / 2 | 0);
 
         if (collide(arena, player)) {
             alert("Game Over! Press OK to reset.");
@@ -370,14 +380,14 @@
         dropCounter = 0;
     }
 
-    // Fixed Hard Drop: Clamps movement vector safety thresholds before floor boundaries trigger
+    // Hard drop handler loop protected against out of bounds errors
     function playerHardDrop() {
         if (collide(arena, player)) return;
 
         while (!collide(arena, player)) {
             player.pos.y++;
         }
-        player.pos.y--; // Correct step shift back inside wall frame arrays
+        player.pos.y--; 
         
         merge(arena, player);
         playerReset();
