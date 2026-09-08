@@ -117,7 +117,151 @@
                 <p>The classic 90s brick-stacking puzzle game. Clear horizontal rows, scale through level multipliers, and beat your high score.</p>
             </div>
             <!-- CHANGE THE URL BELOW TO YOUR LIVE TETRIS LINK -->
+            <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Retro Arcade Hub</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            color: #333;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .arcade-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .game-card {
+            background: #fff;
+            border: 2px solid #333;
+            box-shadow: 5px 5px 0px #888;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.1s ease;
+        }
+
+        .game-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px #666;
+        }
+
+        .game-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .game-card p {
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
+        .play-btn {
+            display: inline-block;
+            background-color: #333;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 2px solid #333;
+            transition: background 0.2s ease;
+        }
+
+        .play-btn:hover {
+            background-color: #eee;
+            color: #333;
+        }
+
+        /* Styling placeholder cards for unreleased games */
+        .locked {
+            opacity: 0.6;
+            border-style: dashed;
+            background: #fafafa;
+            box-shadow: none;
+        }
+        .locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        .locked .play-btn {
+            background-color: #ccc;
+            border-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>MY ARCADE HUB</h1>
+    <p class="subtitle">Select a retro game from the cabinet below to start playing!</p>
+
+    <div class="arcade-grid">
+        
+        <!-- Active Tetris Card -->
+        <div class="game-card">
+            <div>
+                <h2>Tetris</h2>
+                <p>The classic 90s brick-stacking puzzle game. Clear horizontal rows, scale through level multipliers, and beat your high score.</p>
+            </div>
+            <!-- CHANGE THE URL BELOW TO YOUR LIVE TETRIS LINK -->
             <a href="https://github.io" class="play-btn" target="_blank">Insert Coin</a>
+        </div>
+
+        <!-- Placeholder Game 2 -->
+        <div class="game-card locked">
+            <div>
+                <h2>Snake Game</h2>
+                <p>Slither around the grid, consume food targets, and grow as long as possible without biting your own tail. Coming soon!</p>
+            </div>
+            <a href="#" class="play-btn" onclick="return false;">Locked</a>
+        </div>
+
+        <!-- Placeholder Game 3 -->
+        <div class="game-card locked">
+            <div>
+                <h2>Retro Pong</h2>
+                <p>The grandfather of arcade classics. Deflect the bouncing ball past the enemy paddle to score points in a fast local match. Coming soon!</p>
+            </div>
+            <a href="#" class="play-btn" onclick="return false;">Locked</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
+
         </div>
 
         <!-- Placeholder Game 2 -->
