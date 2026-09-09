@@ -1,186 +1,177 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Turbo</title>
 
 <style>
 *{
-    box-sizing:border-box;
-    user-select:none;
-    -webkit-user-select:none;
+  box-sizing:border-box;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:none;
 }
 
 html,body{
-    margin:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:#67cfff;
-    font-family:Arial,sans-serif;
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#111;
+  font-family:Arial,Helvetica,sans-serif;
 }
 
 canvas{
-    display:block;
-    width:100vw;
-    height:100vh;
+  display:block;
+  width:100%;
+  height:100%;
+  background:#65b9ed;
 }
 
-#info{
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    color:white;
-    font-weight:bold;
-    text-shadow:2px 2px 4px #000;
+#hud{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  color:white;
+  text-shadow:2px 2px 4px #000;
 }
 
-#name{
-    position:absolute;
-    left:18px;
-    top:15px;
-    font-size:clamp(20px,3vw,32px);
+#top{
+  position:absolute;
+  top:12px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
 }
 
-#round{
-    position:absolute;
-    right:20px;
-    top:15px;
-    font-size:24px;
+.panel{
+  min-width:88px;
+  padding:7px 11px;
+  border-radius:9px;
+  background:rgba(0,0,0,.48);
+  border:1px solid rgba(255,255,255,.2);
+  text-align:center;
+  font-weight:bold;
 }
 
-#rank{
-    position:absolute;
-    right:20px;
-    top:52px;
-    font-size:22px;
-}
-
-#velocity{
-    position:absolute;
-    left:18px;
-    bottom:18px;
-    font-size:21px;
-}
-
-#slot{
-    position:absolute;
-    right:20px;
-    bottom:18px;
-    width:70px;
-    height:70px;
-    border:3px solid white;
-    border-radius:16px;
-    background:rgba(0,0,0,.45);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:38px;
+.small{
+  display:block;
+  font-size:10px;
+  opacity:.7;
+  letter-spacing:1px;
 }
 
 #notice{
-    display:none;
-    position:fixed;
-    left:50%;
-    top:43%;
-    transform:translate(-50%,-50%);
-    z-index:15;
-    text-align:center;
-    color:white;
-    font-size:clamp(42px,9vw,100px);
-    font-weight:900;
-    text-shadow:5px 5px 0 #000;
+  position:absolute;
+  left:50%;
+  top:18%;
+  transform:translateX(-50%);
+  font-size:34px;
+  font-weight:900;
+  text-align:center;
+  opacity:0;
+  transition:opacity .15s;
 }
 
-#welcome{
-    position:fixed;
-    inset:0;
-    z-index:20;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    color:white;
-    background:
-        radial-gradient(
-            circle at 50% 30%,
-            #fff477,
-            #ff9e3d 20%,
-            #e94271 52%,
-            #42349c 100%
-        );
+#welcome,
+#finish{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.48);
+  z-index:10;
 }
 
-#welcome h1{
-    margin:0;
-    font-size:clamp(50px,11vw,110px);
-    text-shadow:7px 7px #000;
-    transform:rotate(-3deg);
+.box{
+  width:min(90%,520px);
+  padding:30px;
+  border-radius:22px;
+  text-align:center;
+  color:white;
+  background:linear-gradient(180deg,#222d,#111f);
+  border:2px solid #ffffff44;
+  box-shadow:0 18px 60px #000b;
 }
 
-#welcome p{
-    max-width:600px;
-    padding:0 20px;
-    font-size:19px;
-    line-height:1.5;
-    text-shadow:2px 2px 3px #000;
+h1{
+  margin:0 0 8px;
+  font-size:58px;
+  letter-spacing:7px;
+  font-style:italic;
+}
+
+.box p{
+  line-height:1.55;
+  color:#ddd;
 }
 
 button{
-    padding:17px 45px;
-    border:0;
-    border-radius:18px;
-    background:#ff3930;
-    color:white;
-    font-size:25px;
-    font-weight:bold;
-    cursor:pointer;
-    box-shadow:0 7px #991812;
+  border:0;
+  border-radius:12px;
+  padding:14px 28px;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+  color:white;
+  background:#e53935;
+  box-shadow:0 5px 0 #8d1715;
 }
 
 button:active{
-    transform:translateY(5px);
-    box-shadow:0 2px #991812;
+  transform:translateY(4px);
+  box-shadow:0 1px 0 #8d1715;
+}
+
+#finish{
+  display:none;
 }
 
 #touch{
-    display:none;
-    position:fixed;
-    z-index:10;
-    bottom:18px;
-    left:50%;
-    transform:translateX(-50%);
-    gap:10px;
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:15px;
+  display:flex;
+  justify-content:space-between;
+  padding:0 18px;
+  pointer-events:none;
+  z-index:5;
 }
 
-.pad{
-    width:62px;
-    height:62px;
-    border-radius:50%;
-    border:3px solid white;
-    background:rgba(0,0,0,.45);
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:27px;
+.touchGroup{
+  display:flex;
+  gap:10px;
+  pointer-events:auto;
 }
 
-@media(max-width:700px){
-    #touch{
-        display:flex;
-    }
+.touchBtn{
+  width:65px;
+  height:65px;
+  border-radius:50%;
+  background:#0008;
+  border:2px solid #fff7;
+  color:white;
+  font-size:27px;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
-    #velocity{
-        bottom:95px;
-    }
+@media(min-width:800px){
+  #touch{display:none}
+}
 
-    #slot{
-        bottom:95px;
-    }
+@media(max-width:600px){
+  h1{font-size:43px}
+  .panel{min-width:72px;padding:5px 7px}
+  #notice{font-size:27px}
 }
 </style>
 </head>
@@ -189,1166 +180,1454 @@ button:active{
 
 <canvas id="view"></canvas>
 
-<div id="info">
-    <div id="name">TURBO</div>
-    <div id="round">Lap 1 / 3</div>
-    <div id="rank">1st</div>
-    <div id="velocity">0 km/h</div>
-    <div id="slot">?</div>
+<div id="hud">
+  <div id="top">
+    <div class="panel">
+      <span class="small">LAP</span>
+      <span id="round">1 / 5</span>
+    </div>
+
+    <div class="panel">
+      <span class="small">POSITION</span>
+      <span id="rank">1 / 8</span>
+    </div>
+
+    <div class="panel">
+      <span class="small">SPEED</span>
+      <span id="velocity">0</span>
+    </div>
+
+    <div class="panel">
+      <span class="small">ITEM</span>
+      <span id="slot">—</span>
+    </div>
+  </div>
+
+  <div id="notice"></div>
 </div>
 
-<div id="notice"></div>
-
 <div id="welcome">
+  <div class="box">
     <h1>TURBO</h1>
     <p>
-        Drive using <b>WASD</b> or the arrow keys.<br>
-        Stay between the barriers, collect objects and use the bright strips.
+      A longer, faster course with sweeping bends,
+      hills, scenery and multiple sections.
     </p>
-    <button id="begin">BEGIN</button>
+
+    <p>
+      <b>W / ↑</b> accelerate<br>
+      <b>S / ↓</b> brake<br>
+      <b>A / ←</b> steer left<br>
+      <b>D / →</b> steer right<br>
+      <b>SPACE</b> use item
+    </p>
+
+    <button id="begin">START</button>
+  </div>
+</div>
+
+<div id="finish">
+  <div class="box">
+    <h1 id="finishTitle">FINISH</h1>
+    <p id="finishText"></p>
+    <button onclick="restart()">PLAY AGAIN</button>
+  </div>
 </div>
 
 <div id="touch">
-    <div class="pad" id="left">◀</div>
-    <div class="pad" id="up">▲</div>
-    <div class="pad" id="down">▼</div>
-    <div class="pad" id="right">▶</div>
+  <div class="touchGroup">
+    <div class="touchBtn" data-key="left">◀</div>
+    <div class="touchBtn" data-key="right">▶</div>
+  </div>
+
+  <div class="touchGroup">
+    <div class="touchBtn" data-key="down">▼</div>
+    <div class="touchBtn" data-key="up">▲</div>
+  </div>
 </div>
 
 <script>
-
 const canvas=document.getElementById("view");
 const ctx=canvas.getContext("2d");
 
-let W=0;
-let H=0;
+let W=innerWidth;
+let H=innerHeight;
+let dpr=Math.min(devicePixelRatio||1,2);
 
 function resize(){
-    W=innerWidth;
-    H=innerHeight;
-    canvas.width=W;
-    canvas.height=H;
+  W=innerWidth;
+  H=innerHeight;
+  dpr=Math.min(devicePixelRatio||1,2);
+
+  canvas.width=W*dpr;
+  canvas.height=H*dpr;
+  canvas.style.width=W+"px";
+  canvas.style.height=H+"px";
+
+  ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 
 addEventListener("resize",resize);
 resize();
 
-const TOTAL=3;
-const TRACK=18000;
+
+/* ---------------------------
+   COURSE
+---------------------------- */
+
+const TOTAL=5;
+const TRACK=36000;
 const SEGMENT=120;
+
+const route=[];
+const scenery=[];
+const strips=[];
+const objects=[];
+const barriers=[];
+
+function makeRoute(){
+
+  route.length=0;
+
+  for(let z=0;z<TRACK;z+=SEGMENT){
+
+    const p=z/TRACK;
+    let curve=0;
+    let hill=0;
+
+    /*
+      Several long sections make the
+      course feel considerably larger.
+    */
+
+    if(p<.08){
+      curve=0;
+      hill=Math.sin(p*25)*12;
+    }
+    else if(p<.18){
+      curve=Math.sin(p*24)*1.4;
+      hill=Math.sin(p*17)*22;
+    }
+    else if(p<.28){
+      curve=-Math.sin((p-.18)*35)*2.1;
+      hill=-Math.sin((p-.18)*22)*18;
+    }
+    else if(p<.39){
+      curve=Math.sin(p*31)*1.7;
+      hill=Math.sin(p*14)*28;
+    }
+    else if(p<.49){
+      curve=-2.8+Math.sin(p*27)*.8;
+      hill=-15+Math.sin(p*25)*10;
+    }
+    else if(p<.59){
+      curve=3.2+Math.sin(p*20)*1.1;
+      hill=Math.sin(p*18)*25;
+    }
+    else if(p<.70){
+      curve=Math.sin(p*35)*2.4;
+      hill=-Math.sin(p*21)*25;
+    }
+    else if(p<.81){
+      curve=-3.5+Math.sin(p*19)*1.4;
+      hill=Math.sin(p*15)*30;
+    }
+    else if(p<.91){
+      curve=Math.sin(p*42)*1.9;
+      hill=-Math.sin(p*18)*24;
+    }
+    else{
+      curve=0;
+      hill=Math.sin(p*30)*10;
+    }
+
+    route.push({
+      z,
+      curve,
+      hill
+    });
+  }
+
+
+  scenery.length=0;
+  strips.length=0;
+  objects.length=0;
+  barriers.length=0;
+
+  for(let i=0;i<route.length;i++){
+
+    const z=i*SEGMENT;
+
+    if(i%7===0){
+      scenery.push({
+        z:z+30,
+        side:-1,
+        type:Math.random()<.55?"tree":"sign",
+        size:.8+Math.random()*.7
+      });
+
+      scenery.push({
+        z:z+80,
+        side:1,
+        type:Math.random()<.55?"tree":"sign",
+        size:.8+Math.random()*.7
+      });
+    }
+
+    if(i%31===10 || i%31===11){
+      strips.push({
+        z:z,
+        x:(Math.random()*1.3)-.65,
+        width:.45
+      });
+    }
+
+    if(i%43===18){
+      objects.push({
+        z:z,
+        x:(Math.random()*1.4)-.7,
+        type:"boost",
+        used:false
+      });
+    }
+
+    if(i%67===25){
+      objects.push({
+        z:z,
+        x:(Math.random()*1.4)-.7,
+        type:"banana",
+        used:false
+      });
+    }
+
+    if(i%13===0){
+      barriers.push({z:z,side:-1});
+      barriers.push({z:z+50,side:1});
+    }
+  }
+}
+
+makeRoute();
+
+
+/* ---------------------------
+   VEHICLES
+---------------------------- */
+
+const vehicle={
+  x:0,
+  z:0,
+  speed:0,
+  maxSpeed:1150,
+  lap:1,
+  total:0,
+  boost:0,
+  object:null,
+  name:"YOU"
+};
+
+const vehicles=[];
+
+function createVehicles(){
+
+  vehicles.length=0;
+
+  const colors=[
+    "#e53935",
+    "#1976d2",
+    "#fbc02d",
+    "#8e24aa",
+    "#00897b",
+    "#fb8c00",
+    "#3949ab"
+  ];
+
+  for(let i=0;i<7;i++){
+
+    vehicles.push({
+      x:(i%3-1)*.38,
+      z:220+i*170,
+      speed:720+Math.random()*160,
+      maxSpeed:850+Math.random()*180,
+      color:colors[i],
+      phase:Math.random()*10,
+      wobble:Math.random()*3,
+      lap:1
+    });
+  }
+}
+
+createVehicles();
+
+
+/* ---------------------------
+   INPUT
+---------------------------- */
+
+const keys={
+  up:false,
+  down:false,
+  left:false,
+  right:false,
+  space:false
+};
+
+addEventListener("keydown",e=>{
+
+  const k=e.key.toLowerCase();
+
+  if(k==="w"||e.key==="ArrowUp")keys.up=true;
+  if(k==="s"||e.key==="ArrowDown")keys.down=true;
+  if(k==="a"||e.key==="ArrowLeft")keys.left=true;
+  if(k==="d"||e.key==="ArrowRight")keys.right=true;
+
+  if(e.code==="Space"){
+    keys.space=true;
+    e.preventDefault();
+  }
+
+  if(k==="r"&&finished)restart();
+});
+
+addEventListener("keyup",e=>{
+
+  const k=e.key.toLowerCase();
+
+  if(k==="w"||e.key==="ArrowUp")keys.up=false;
+  if(k==="s"||e.key==="ArrowDown")keys.down=false;
+  if(k==="a"||e.key==="ArrowLeft")keys.left=false;
+  if(k==="d"||e.key==="ArrowRight")keys.right=false;
+
+  if(e.code==="Space")keys.space=false;
+});
+
+
+document.querySelectorAll(".touchBtn").forEach(btn=>{
+
+  const key=btn.dataset.key;
+
+  const down=e=>{
+    e.preventDefault();
+    keys[key]=true;
+  };
+
+  const up=e=>{
+    e.preventDefault();
+    keys[key]=false;
+  };
+
+  btn.addEventListener("pointerdown",down);
+  btn.addEventListener("pointerup",up);
+  btn.addEventListener("pointercancel",up);
+  btn.addEventListener("pointerleave",up);
+});
+
+
+/* ---------------------------
+   STATE
+---------------------------- */
 
 let active=false;
 let finished=false;
 let countdown=0;
+let last=performance.now();
+let usedSpace=false;
 
-const vehicle={
-    x:0,
-    z:0,
-    speed:0,
-    maxSpeed:1,
-    lap:1,
-    total:0,
-    boost:0,
-    object:null
-};
+document.getElementById("begin").onclick=begin;
 
-const vehicles=[];
-const route=[];
-const objects=[];
-const strips=[];
-const barriers=[];
+function begin(){
 
-const input={};
+  document.getElementById("welcome").style.display="none";
 
-const shades=[
-    "#ff4040",
-    "#42dc5b",
-    "#ffd21c",
-    "#a66cff",
-    "#31c9ff"
-];
+  restart();
 
-/* Route */
+  active=true;
+  countdown=3;
 
-for(let i=0;i<TRACK;i+=SEGMENT){
+  showNotice("3",900);
 
-    let bend=0;
-
-    if(i<1800) bend=0;
-    else if(i<3600) bend=.9;
-    else if(i<5100) bend=-1.1;
-    else if(i<7200) bend=0;
-    else if(i<9300) bend=1.4;
-    else if(i<11100) bend=-1.3;
-    else if(i<13200) bend=0;
-    else if(i<15000) bend=-1.6;
-    else if(i<16800) bend=1.1;
-    else bend=0;
-
-    route.push({
-        z:i,
-        bend:bend
-    });
+  setTimeout(()=>showNotice("2",700),900);
+  setTimeout(()=>showNotice("1",700),1600);
+  setTimeout(()=>showNotice("GO!",900),2300);
 }
-
-/* Objects */
-
-for(let i=700;i<TRACK;i+=1100){
-
-    objects.push({
-        z:i,
-        x:(Math.random()*.9)-.45,
-        type:Math.random()<.5?"⚡":"🍌",
-        taken:false
-    });
-}
-
-/* Bright strips */
-
-for(let i=1500;i<TRACK;i+=3000){
-
-    strips.push({
-        z:i,
-        x:0
-    });
-}
-
-/* Side markers */
-
-for(let i=0;i<TRACK;i+=360){
-
-    barriers.push({
-        z:i,
-        side:i%720===0?-1:1
-    });
-}
-
-/* Input */
-
-addEventListener("keydown",e=>{
-
-    input[e.key.toLowerCase()]=true;
-
-    if([
-        "arrowup",
-        "arrowdown",
-        "arrowleft",
-        "arrowright",
-        " "
-    ].includes(e.key.toLowerCase())){
-        e.preventDefault();
-    }
-
-    if(e.key===" "){
-        useObject();
-    }
-
-    if(finished&&e.key.toLowerCase()==="r"){
-        restart();
-    }
-});
-
-addEventListener("keyup",e=>{
-    input[e.key.toLowerCase()]=false;
-});
-
-/* Touch */
-
-function touch(id,key){
-
-    const el=document.getElementById(id);
-
-    const down=e=>{
-        e.preventDefault();
-        input[key]=true;
-    };
-
-    const up=e=>{
-        e.preventDefault();
-        input[key]=false;
-    };
-
-    el.addEventListener("touchstart",down,{passive:false});
-    el.addEventListener("touchend",up,{passive:false});
-    el.addEventListener("touchcancel",up,{passive:false});
-}
-
-touch("left","arrowleft");
-touch("right","arrowright");
-touch("up","arrowup");
-touch("down","arrowdown");
-
-/* Start */
-
-document.getElementById("begin").onclick=restart;
 
 function restart(){
 
-    document.getElementById("welcome").style.display="none";
-    document.getElementById("notice").style.display="none";
+  vehicle.x=0;
+  vehicle.z=0;
+  vehicle.speed=0;
+  vehicle.lap=1;
+  vehicle.total=0;
+  vehicle.boost=0;
+  vehicle.object=null;
 
-    active=true;
-    finished=false;
+  finished=false;
 
-    vehicle.x=0;
-    vehicle.z=0;
-    vehicle.speed=0;
-    vehicle.lap=1;
-    vehicle.total=0;
-    vehicle.boost=0;
-    vehicle.object=null;
+  for(let i=0;i<vehicles.length;i++){
 
-    objects.forEach(o=>o.taken=false);
+    vehicles[i].x=(i%3-1)*.38;
+    vehicles[i].z=240+i*190;
+    vehicles[i].speed=700+Math.random()*180;
+    vehicles[i].lap=1;
+  }
 
-    createVehicles();
+  for(const o of objects)o.used=false;
 
-    countdown=3;
-
-    setTimeout(()=>countdown=2,1000);
-    setTimeout(()=>countdown=1,2000);
-    setTimeout(()=>countdown=0,3000);
+  document.getElementById("finish").style.display="none";
 }
 
-/* Other vehicles */
+function showNotice(text,time){
 
-function createVehicles(){
+  const n=document.getElementById("notice");
 
-    vehicles.length=0;
+  n.textContent=text;
+  n.style.opacity=1;
 
-    for(let i=0;i<5;i++){
+  clearTimeout(n.timer);
 
-        vehicles.push({
-            x:(i-2)*.3,
-            z:350-i*180,
-            speed:.62+Math.random()*.12,
-            lap:1,
-            total:0,
-            shade:shades[i],
-            phase:Math.random()*20
-        });
-    }
+  n.timer=setTimeout(()=>{
+    n.style.opacity=0;
+  },time);
 }
 
-/* Helpers */
+
+/* ---------------------------
+   HELPERS
+---------------------------- */
 
 function clamp(v,a,b){
-    return Math.max(a,Math.min(b,v));
+  return Math.max(a,Math.min(b,v));
 }
 
-function wrap(v){
+function wrap(v,max){
 
-    v%=TRACK;
+  while(v<0)v+=max;
+  while(v>=max)v-=max;
 
-    if(v<0)v+=TRACK;
-
-    return v;
+  return v;
 }
 
 function getSegment(z){
-    return route[
-        Math.floor(wrap(z)/SEGMENT)
-    ]||route[0];
+
+  return route[Math.floor(wrap(z,TRACK)/SEGMENT)%route.length];
 }
 
-/* Vehicle movement */
 
-function moveVehicle(){
+/* ---------------------------
+   MOVEMENT
+---------------------------- */
 
-    if(countdown>0)return;
+function moveVehicle(dt){
 
-    const forward=
-        input.arrowup||
-        input.w;
+  const acceleration=keys.up?1050:0;
+  const braking=keys.down?1450:0;
 
-    const backward=
-        input.arrowdown||
-        input.s;
+  vehicle.speed+=acceleration*dt;
+  vehicle.speed-=braking*dt;
 
-    const left=
-        input.arrowleft||
-        input.a;
+  if(!keys.up && !keys.down){
+    vehicle.speed-=270*dt;
+  }
 
-    const right=
-        input.arrowright||
-        input.d;
+  if(vehicle.boost>0){
+    vehicle.speed+=1450*dt;
+    vehicle.boost-=dt;
+  }
 
-    if(forward){
-        vehicle.speed+=.014;
-    }else{
-        vehicle.speed-=.006;
+  vehicle.speed=clamp(vehicle.speed,0,vehicle.maxSpeed+420);
+
+
+  let steer=0;
+
+  if(keys.left)steer-=1;
+  if(keys.right)steer+=1;
+
+  const steerPower=
+    (0.75+vehicle.speed/vehicle.maxSpeed*.8)*dt;
+
+  vehicle.x+=steer*steerPower;
+
+  /*
+    Curves pull the vehicle slightly,
+    making the route feel physical.
+  */
+
+  const segment=getSegment(vehicle.z);
+
+  vehicle.x-=segment.curve*
+             (vehicle.speed/vehicle.maxSpeed)*
+             .00095*dt*60;
+
+
+  /*
+    Road limits
+  */
+
+  if(Math.abs(vehicle.x)>1.12){
+
+    vehicle.speed-=900*dt;
+
+    vehicle.x=clamp(vehicle.x,-1.35,1.35);
+  }
+
+  vehicle.x=clamp(vehicle.x,-1.25,1.25);
+
+  vehicle.z+=vehicle.speed*dt;
+
+  if(vehicle.z>=TRACK){
+
+    vehicle.z-=TRACK;
+    vehicle.lap++;
+
+    if(vehicle.lap>TOTAL){
+      complete();
     }
+  }
 
-    if(backward){
-        vehicle.speed-=.025;
-    }
-
-    if(vehicle.boost>0){
-        vehicle.speed+=.025;
-        vehicle.boost--;
-    }
-
-    vehicle.speed=clamp(
-        vehicle.speed,
-        0,
-        vehicle.maxSpeed
-    );
-
-    const steering=
-        .038+
-        vehicle.speed*.025;
-
-    if(left){
-        vehicle.x-=steering;
-    }
-
-    if(right){
-        vehicle.x+=steering;
-    }
-
-    /* Off-course slowdown */
-
-    if(Math.abs(vehicle.x)>1){
-
-        vehicle.speed-=.02;
-
-    }
-
-    /* Hard boundary */
-
-    vehicle.x=clamp(
-        vehicle.x,
-        -1.38,
-        1.38
-    );
-
-    vehicle.z+=vehicle.speed*145;
-
-    if(vehicle.z>=TRACK){
-
-        vehicle.z-=TRACK;
-        vehicle.lap++;
-
-        if(vehicle.lap>TOTAL){
-            complete();
-            return;
-        }
-    }
-
-    vehicle.total=
-        (vehicle.lap-1)*TRACK+
-        vehicle.z;
-
-    checkObjects();
-    checkStrips();
+  vehicle.total=
+    (vehicle.lap-1)*TRACK+
+    vehicle.z;
 }
 
-/* Other movement */
 
-function moveOthers(){
+function moveOthers(dt){
 
-    if(countdown>0)return;
+  for(const v of vehicles){
 
-    for(const v of vehicles){
+    const target=
+      .75+
+      Math.sin(performance.now()*.0006+v.phase)*.18;
 
-        v.z+=v.speed*145;
-
-        v.phase+=.02;
-
-        v.x+=Math.sin(v.phase)*.001;
-
-        v.x=clamp(v.x,-1,1);
-
-        if(v.z>=TRACK){
-
-            v.z-=TRACK;
-            v.lap++;
-        }
-
-        v.total=
-            (v.lap-1)*TRACK+
-            v.z;
+    if(v.speed<v.maxSpeed){
+      v.speed+=500*dt;
     }
+
+    v.speed=clamp(v.speed,500,v.maxSpeed);
+
+    v.z+=v.speed*dt;
+
+    if(v.z>=TRACK){
+
+      v.z-=TRACK;
+      v.lap++;
+    }
+
+    const seg=getSegment(v.z);
+
+    v.x+=Math.sin(
+      performance.now()*.001+
+      v.wobble
+    )*.0009;
+
+    v.x-=seg.curve*.00015*dt*60;
+
+    v.x=clamp(v.x,-.92,.92);
+  }
 }
 
-/* Objects */
+
+/* ---------------------------
+   OBJECTS
+---------------------------- */
 
 function checkObjects(){
 
-    for(const o of objects){
+  for(const o of objects){
 
-        if(o.taken)continue;
+    if(o.used)continue;
 
-        let gap=Math.abs(o.z-vehicle.z);
+    let dz=o.z-vehicle.z;
 
-        gap=Math.min(
-            gap,
-            TRACK-gap
-        );
+    if(dz>TRACK/2)dz-=TRACK;
+    if(dz<-TRACK/2)dz+=TRACK;
 
-        if(
-            gap<100&&
-            Math.abs(o.x-vehicle.x)<.32
-        ){
+    if(Math.abs(dz)<85 &&
+       Math.abs(o.x-vehicle.x)<.28){
 
-            o.taken=true;
-            vehicle.object=o.type;
+      if(o.type==="boost"){
 
-            document.getElementById("slot")
-                .textContent=o.type;
-        }
+        vehicle.boost=1.8;
+        showNotice("BOOST!",700);
+
+      }else{
+
+        vehicle.object="🍌";
+        showNotice("ITEM!",700);
+      }
+
+      o.used=true;
     }
+  }
 }
+
 
 function useObject(){
 
-    if(!vehicle.object)return;
-
-    if(vehicle.object==="⚡"){
-        vehicle.boost=100;
-    }
-
-    if(vehicle.object==="🍌"){
-
-        for(const v of vehicles){
-
-            let gap=Math.abs(v.z-vehicle.z);
-
-            gap=Math.min(
-                gap,
-                TRACK-gap
-            );
-
-            if(gap<800){
-                v.speed*=.65;
-            }
-        }
-    }
+  if(vehicle.object==="🍌"){
 
     vehicle.object=null;
 
-    document.getElementById("slot")
-        .textContent="?";
-}
+    const target=vehicles
+      .filter(v=>Math.abs(v.z-vehicle.z)<700)
+      .sort((a,b)=>Math.abs(a.z-vehicle.z)-Math.abs(b.z-vehicle.z))[0];
 
-function checkStrips(){
+    if(target){
 
-    for(const s of strips){
-
-        let gap=Math.abs(s.z-vehicle.z);
-
-        gap=Math.min(
-            gap,
-            TRACK-gap
-        );
-
-        if(
-            gap<90&&
-            Math.abs(vehicle.x-s.x)<.42
-        ){
-            vehicle.boost=45;
-        }
+      target.speed*=.35;
+      target.z-=250;
     }
+
+    showNotice("THROWN!",600);
+  }
 }
 
-/* Position */
+
+/* ---------------------------
+   POSITION
+---------------------------- */
 
 function updateRank(){
 
-    let rank=1;
+  const all=[
+    {
+      total:vehicle.total,
+      you:true
+    },
+    ...vehicles.map(v=>({
+      total:(v.lap-1)*TRACK+v.z
+    }))
+  ];
 
-    for(const v of vehicles){
+  all.sort((a,b)=>b.total-a.total);
 
-        if(v.total>vehicle.total){
-            rank++;
-        }
-    }
+  const pos=
+    all.findIndex(x=>x.you)+1;
 
-    const suffix=
-        rank===1?"st":
-        rank===2?"nd":
-        rank===3?"rd":"th";
+  document.getElementById("rank").textContent=
+    pos+" / "+all.length;
 
-    document.getElementById("rank")
-        .textContent=rank+suffix;
+  document.getElementById("round").textContent=
+    Math.min(vehicle.lap,TOTAL)+" / "+TOTAL;
 
-    document.getElementById("round")
-        .textContent=
-        "Lap "+
-        Math.min(vehicle.lap,TOTAL)+
-        " / "+
-        TOTAL;
+  document.getElementById("velocity").textContent=
+    Math.round(vehicle.speed*.18);
 
-    document.getElementById("velocity")
-        .textContent=
-        Math.round(vehicle.speed*190)+
-        " km/h";
+  document.getElementById("slot").textContent=
+    vehicle.object||"—";
 }
 
-/* Complete */
+
+/* ---------------------------
+   FINISH
+---------------------------- */
 
 function complete(){
 
-    finished=true;
+  if(finished)return;
 
-    const n=document.getElementById("notice");
+  finished=true;
+  active=false;
 
-    n.innerHTML=
-        "🏁 FINISH<br>"+
-        "<span style='font-size:.35em'>Press R to restart</span>";
+  const rank=
+    document.getElementById("rank").textContent;
 
-    n.style.display="block";
+  document.getElementById("finishText").innerHTML=
+    "You finished in <b>"+rank+"</b>.<br><br>"+
+    "Press the button below to go again.";
+
+  document.getElementById("finish").style.display="flex";
 }
 
-/* Background */
+
+/* ---------------------------
+   BACKGROUND
+---------------------------- */
 
 function drawBackground(){
 
-    const sky=ctx.createLinearGradient(
-        0,0,0,H
-    );
+  const sky=ctx.createLinearGradient(0,0,0,H);
 
-    sky.addColorStop(0,"#38b9ff");
-    sky.addColorStop(.55,"#b9edff");
-    sky.addColorStop(.56,"#77d45d");
-    sky.addColorStop(1,"#42a943");
+  sky.addColorStop(0,"#45a9e8");
+  sky.addColorStop(.52,"#9bdbf4");
+  sky.addColorStop(.53,"#77c44e");
+  sky.addColorStop(1,"#4e9e35");
 
-    ctx.fillStyle=sky;
-    ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=sky;
+  ctx.fillRect(0,0,W,H);
 
-    /* Sun */
 
-    ctx.fillStyle="#fff4a2";
+  /*
+    distant mountains
+  */
+
+  ctx.fillStyle="#609e80";
+
+  ctx.beginPath();
+  ctx.moveTo(0,H*.52);
+
+  for(let x=0;x<=W;x+=40){
+
+    const y=
+      H*.42+
+      Math.sin(x*.008)*35+
+      Math.sin(x*.021)*22;
+
+    ctx.lineTo(x,y);
+  }
+
+  ctx.lineTo(W,H*.65);
+  ctx.lineTo(0,H*.65);
+  ctx.closePath();
+  ctx.fill();
+
+
+  /*
+    clouds
+  */
+
+  for(let i=0;i<5;i++){
+
+    const x=
+      ((i*310+performance.now()*.008)%
+      (W+300))-150;
+
+    const y=70+(i%3)*55;
+
+    ctx.fillStyle="rgba(255,255,255,.8)";
 
     ctx.beginPath();
-
-    ctx.arc(
-        W*.78,
-        H*.17,
-        Math.min(W,H)*.065,
-        0,
-        Math.PI*2
-    );
-
+    ctx.arc(x,y,28,0,Math.PI*2);
+    ctx.arc(x+35,y-12,36,0,Math.PI*2);
+    ctx.arc(x+72,y,27,0,Math.PI*2);
     ctx.fill();
-
-    /* Clouds */
-
-    drawCloud(W*.18,H*.18,1);
-    drawCloud(W*.52,H*.11,.75);
-    drawCloud(W*.86,H*.27,.8);
+  }
 }
 
-function drawCloud(x,y,s){
 
-    ctx.fillStyle="rgba(255,255,255,.9)";
-
-    ctx.beginPath();
-
-    ctx.arc(x,y,28*s,0,Math.PI*2);
-    ctx.arc(x+35*s,y-12*s,38*s,0,Math.PI*2);
-    ctx.arc(x+75*s,y,28*s,0,Math.PI*2);
-
-    ctx.fill();
-}
-
-/* Road */
+/* ---------------------------
+   ROAD
+---------------------------- */
 
 function drawRoad(){
 
-    const horizon=H*.40;
+  const horizon=H*.36;
+  const bottom=H;
+  const center=W/2;
 
-    const visible=80;
+  /*
+    layered road slices
+  */
 
-    let curve=0;
+  const slices=90;
 
-    for(let i=visible;i>=1;i--){
+  for(let i=0;i<slices;i++){
 
-        const z=
-            vehicle.z+
-            i*SEGMENT;
+    const near=i/slices;
+    const far=(i+1)/slices;
 
-        const s=getSegment(z);
+    const y1=horizon+
+      Math.pow(near,1.75)*(bottom-horizon);
 
-        curve+=s.bend*.002;
+    const y2=horizon+
+      Math.pow(far,1.75)*(bottom-horizon);
 
-        const depth=1-i/visible;
+    const depth1=Math.pow(near,1.8);
+    const depth2=Math.pow(far,1.8);
 
-        const y=
-            horizon+
-            Math.pow(depth,1.9)*
-            H*.62;
+    const seg=getSegment(
+      vehicle.z+
+      (near-.03)*1900
+    );
 
-        const roadWidth=
-            W*.045+
-            depth*W*.86;
+    const curve=seg.curve;
 
-        const center=
-            W/2+
-            curve*
-            W*
-            depth;
+    const bend=
+      curve*
+      depth1*
+      W*.22;
 
-        /* Grass stripes */
+    const bend2=
+      curve*
+      depth2*
+      W*.22;
 
-        ctx.fillStyle=
-            i%2===0
-                ?"#4eb84a"
-                :"#55c650";
+    const road1=
+      W*.08+
+      depth1*W*.46;
 
-        ctx.fillRect(
-            0,
-            y,
-            W,
-            25
-        );
+    const road2=
+      W*.08+
+      depth2*W*.46;
 
-        /* Road */
+    const cx1=center+bend;
+    const cx2=center+bend2;
 
-        ctx.fillStyle=
-            i%2===0
-                ?"#454545"
-                :"#4c4c4c";
+    /*
+      grass
+    */
 
-        ctx.beginPath();
+    ctx.fillStyle=
+      i%2 ? "#56a83c":"#4d9c35";
 
-        ctx.moveTo(
-            center-roadWidth/2,
-            y
-        );
+    ctx.fillRect(0,y1,W,y2-y1);
 
-        ctx.lineTo(
-            center+roadWidth/2,
-            y
-        );
 
-        ctx.lineTo(
-            center+roadWidth*.52,
-            y+25
-        );
+    /*
+      road
+    */
 
-        ctx.lineTo(
-            center-roadWidth*.52,
-            y+25
-        );
+    ctx.fillStyle=
+      i%2 ? "#555":"#505050";
 
-        ctx.closePath();
+    ctx.beginPath();
 
-        ctx.fill();
+    ctx.moveTo(cx1-road1,y1);
+    ctx.lineTo(cx1+road1,y1);
+    ctx.lineTo(cx2+road2,y2);
+    ctx.lineTo(cx2-road2,y2);
 
-        /* Left edge */
+    ctx.closePath();
+    ctx.fill();
 
-        ctx.fillStyle=
-            i%2===0
-                ?"#fff"
-                :"#ef3b3b";
 
-        ctx.fillRect(
-            center-roadWidth/2-8,
-            y,
-            8,
-            25
-        );
+    /*
+      red/white edge strips
+    */
 
-        /* Right edge */
+    const edge1=road1*.085;
+    const edge2=road2*.085;
 
-        ctx.fillRect(
-            center+roadWidth/2,
-            y,
-            8,
-            25
-        );
+    ctx.fillStyle=
+      i%2 ? "#f6f6f6":"#d83232";
 
-        /* Centre markings */
+    ctx.beginPath();
 
-        if(i%5===0){
+    ctx.moveTo(cx1-road1,y1);
+    ctx.lineTo(cx1-road1+edge1,y1);
+    ctx.lineTo(cx2-road2+edge2,y2);
+    ctx.lineTo(cx2-road2,y2);
 
-            ctx.fillStyle="#f7f7f7";
+    ctx.closePath();
+    ctx.fill();
 
-            ctx.fillRect(
-                center-roadWidth*.012,
-                y,
-                roadWidth*.024,
-                25
-            );
-        }
+    ctx.beginPath();
+
+    ctx.moveTo(cx1+road1-edge1,y1);
+    ctx.lineTo(cx1+road1,y1);
+    ctx.lineTo(cx2+road2,y2);
+    ctx.lineTo(cx2+road2-edge2,y2);
+
+    ctx.closePath();
+    ctx.fill();
+
+
+    /*
+      centre markings
+    */
+
+    if(i%5===0){
+
+      ctx.fillStyle="#eee";
+
+      const mark1=road1*.025;
+      const mark2=road2*.025;
+
+      ctx.beginPath();
+
+      ctx.moveTo(cx1-mark1,y1);
+      ctx.lineTo(cx1+mark1,y1);
+      ctx.lineTo(cx2+mark2,y2);
+      ctx.lineTo(cx2-mark2,y2);
+
+      ctx.closePath();
+      ctx.fill();
     }
+  }
 }
 
-/* Side markers */
+
+/* ---------------------------
+   BARRIERS
+---------------------------- */
 
 function drawBarriers(){
 
-    for(const b of barriers){
+  const horizon=H*.36;
+  const center=W/2;
 
-        let distance=
-            wrap(b.z-vehicle.z);
+  for(const b of barriers){
 
-        if(distance>6000)continue;
+    let dz=b.z-vehicle.z;
 
-        const depth=
-            1-distance/6000;
+    if(dz<0)dz+=TRACK;
 
-        if(depth<=0)continue;
+    if(dz>2100)continue;
 
-        const s=getSegment(b.z);
+    const p=1-dz/2100;
 
-        const bend=
-            s.bend*
-            distance*
-            .002;
+    if(p<0)continue;
 
-        const center=
-            W/2+
-            bend*W;
+    const y=
+      horizon+
+      Math.pow(p,1.75)*(H-horizon);
 
-        const road=
-            W*.05+
-            depth*W*.86;
+    const scale=.15+p*1.2;
 
-        const side=b.side;
+    const seg=getSegment(b.z);
 
-        const x=
-            center+
-            side*
-            (road/2+
-            25+
-            depth*45);
+    const cx=
+      center+
+      seg.curve*p*W*.22;
 
-        const y=
-            H*.40+
-            Math.pow(depth,1.9)*H*.62;
+    const x=
+      cx+
+      b.side*
+      (W*.08+p*W*.46);
 
-        const size=
-            8+depth*42;
+    const w=18*scale;
+    const h=24*scale;
 
-        ctx.fillStyle="#fff";
+    ctx.fillStyle="#ddd";
 
-        ctx.fillRect(
-            x-size*.12,
-            y-size,
-            size*.24,
-            size
-        );
+    ctx.fillRect(x-w/2,y-h,w,h);
 
-        ctx.fillStyle="#e93434";
+    ctx.fillStyle="#d33";
 
-        ctx.beginPath();
-
-        ctx.arc(
-            x,
-            y-size,
-            size*.32,
-            0,
-            Math.PI*2
-        );
-
-        ctx.fill();
-    }
+    ctx.fillRect(
+      x-w/2,
+      y-h,
+      w,
+      h*.45
+    );
+  }
 }
 
-/* Bright strips */
+
+/* ---------------------------
+   SCENERY
+---------------------------- */
+
+function drawScenery(){
+
+  const horizon=H*.36;
+  const center=W/2;
+
+  for(const s of scenery){
+
+    let dz=s.z-vehicle.z;
+
+    if(dz<0)dz+=TRACK;
+
+    if(dz>3000)continue;
+
+    const p=1-dz/3000;
+
+    const y=
+      horizon+
+      Math.pow(p,1.65)*(H-horizon);
+
+    const seg=getSegment(s.z);
+
+    const cx=
+      center+
+      seg.curve*p*W*.22;
+
+    const x=
+      cx+
+      s.side*
+      (W*.12+p*W*.54);
+
+    const size=
+      (9+p*48)*s.size;
+
+    if(s.type==="tree"){
+
+      ctx.fillStyle="#70452c";
+
+      ctx.fillRect(
+        x-size*.13,
+        y-size*.7,
+        size*.26,
+        size*.75
+      );
+
+      ctx.fillStyle="#176d35";
+
+      ctx.beginPath();
+      ctx.arc(
+        x,
+        y-size*.95,
+        size*.65,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+
+      ctx.fillStyle="#218844";
+
+      ctx.beginPath();
+      ctx.arc(
+        x-size*.3,
+        y-size*1.15,
+        size*.5,
+        0,
+        Math.PI*2
+      );
+
+      ctx.arc(
+        x+size*.35,
+        y-size*1.12,
+        size*.48,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+
+    }else{
+
+      ctx.fillStyle="#fff";
+
+      ctx.fillRect(
+        x-size*.08,
+        y-size*1.3,
+        size*.16,
+        size*1.3
+      );
+
+      ctx.fillStyle="#ffcc22";
+
+      ctx.fillRect(
+        x-size*.55,
+        y-size*1.45,
+        size*1.1,
+        size*.45
+      );
+    }
+  }
+}
+
+
+/* ---------------------------
+   BOOST STRIPS
+---------------------------- */
 
 function drawStrips(){
 
-    for(const s of strips){
+  const horizon=H*.36;
+  const center=W/2;
 
-        let distance=
-            wrap(s.z-vehicle.z);
+  for(const s of strips){
 
-        if(distance>5000)continue;
+    let dz=s.z-vehicle.z;
 
-        const depth=
-            1-distance/5000;
+    if(dz<0)dz+=TRACK;
 
-        const part=getSegment(s.z);
+    if(dz>1800)continue;
 
-        const bend=
-            part.bend*
-            distance*
-            .002;
+    const p=1-dz/1800;
 
-        const center=
-            W/2+bend*W;
+    const y=
+      horizon+
+      Math.pow(p,1.8)*(H-horizon);
 
-        const road=
-            W*.05+
-            depth*W*.86;
+    const seg=getSegment(s.z);
 
-        const y=
-            H*.40+
-            Math.pow(depth,1.9)*H*.62;
+    const cx=
+      center+
+      seg.curve*p*W*.22;
 
-        ctx.fillStyle="#00d9ff";
+    const roadWidth=
+      W*.08+p*W*.46;
 
-        ctx.fillRect(
-            center-road*.23,
-            y,
-            road*.46,
-            12+depth*18
-        );
+    const x=
+      cx+s.x*roadWidth;
 
-        ctx.fillStyle="#fff";
+    const width=
+      Math.max(5,roadWidth*.22);
 
-        ctx.font=
-            Math.max(10,depth*35)+
-            "px Arial";
+    const height=
+      Math.max(3,14*p);
 
-        ctx.textAlign="center";
+    ctx.fillStyle="#21dfff";
 
-        ctx.fillText(
-            "⚡",
-            center,
-            y+Math.max(10,depth*30)
-        );
-    }
+    ctx.fillRect(
+      x-width/2,
+      y-height,
+      width,
+      height
+    );
+
+    ctx.fillStyle="#fff";
+
+    ctx.fillRect(
+      x-width*.22,
+      y-height,
+      width*.44,
+      height
+    );
+  }
 }
 
-/* Objects */
+
+/* ---------------------------
+   COLLECTIBLES
+---------------------------- */
 
 function drawObjects(){
 
-    for(const o of objects){
+  const horizon=H*.36;
+  const center=W/2;
 
-        if(o.taken)continue;
+  for(const o of objects){
 
-        let distance=
-            wrap(o.z-vehicle.z);
+    if(o.used)continue;
 
-        if(distance>5000)continue;
+    let dz=o.z-vehicle.z;
 
-        const depth=
-            1-distance/5000;
+    if(dz<0)dz+=TRACK;
 
-        const part=getSegment(o.z);
+    if(dz>1500)continue;
 
-        const bend=
-            part.bend*
-            distance*
-            .002;
+    const p=1-dz/1500;
 
-        const center=
-            W/2+bend*W;
+    const y=
+      horizon+
+      Math.pow(p,1.75)*(H-horizon);
 
-        const road=
-            W*.05+
-            depth*W*.86;
+    const seg=getSegment(o.z);
 
-        const x=
-            center+
-            o.x*road;
+    const cx=
+      center+
+      seg.curve*p*W*.22;
 
-        const y=
-            H*.40+
-            Math.pow(depth,1.9)*H*.62;
-
-        const size=
-            10+depth*40;
-
-        ctx.fillStyle=
-            o.type==="⚡"
-                ?"#26cfff"
-                :"#ffd900";
-
-        ctx.fillRect(
-            x-size/2,
-            y-size,
-            size,
-            size
-        );
-
-        ctx.strokeStyle="#fff";
-        ctx.lineWidth=3;
-
-        ctx.strokeRect(
-            x-size/2,
-            y-size,
-            size,
-            size
-        );
-
-        ctx.font=
-            size*.7+
-            "px Arial";
-
-        ctx.textAlign="center";
-
-        ctx.fillStyle="#fff";
-
-        ctx.fillText(
-            o.type,
-            x,
-            y-size*.2
-        );
-    }
-}
-
-/* Other vehicles */
-
-function drawOthers(){
-
-    for(const v of vehicles){
-
-        let distance=
-            wrap(v.z-vehicle.z);
-
-        if(distance>TRACK/2){
-            distance-=TRACK;
-        }
-
-        if(distance<100||distance>5000){
-            continue;
-        }
-
-        const depth=
-            1-distance/5000;
-
-        const part=getSegment(v.z);
-
-        const bend=
-            part.bend*
-            distance*
-            .002;
-
-        const center=
-            W/2+bend*W;
-
-        const road=
-            W*.05+
-            depth*W*.86;
-
-        const x=
-            center+
-            v.x*road;
-
-        const y=
-            H*.40+
-            Math.pow(depth,1.9)*H*.62;
-
-        drawVehicle(
-            x,
-            y,
-            15+depth*48,
-            v.shade
-        );
-    }
-}
-
-/* Main vehicle */
-
-function drawMain(){
+    const roadWidth=
+      W*.08+p*W*.46;
 
     const x=
-        W/2+
-        vehicle.x*
-        W*.18;
+      cx+o.x*roadWidth;
 
-    const y=H*.80;
+    const size=10+p*28;
 
-    drawVehicle(
-        x,
-        y,
-        75,
-        "#f22d32"
-    );
-
-    if(vehicle.boost>0){
-
-        ctx.fillStyle="#ffd000";
-
-        ctx.beginPath();
-
-        ctx.moveTo(x-20,y+30);
-        ctx.lineTo(x,y+75);
-        ctx.lineTo(x+20,y+30);
-
-        ctx.fill();
-
-        ctx.fillStyle="#fff";
-
-        ctx.beginPath();
-
-        ctx.moveTo(x-7,y+31);
-        ctx.lineTo(x,y+60);
-        ctx.lineTo(x+7,y+31);
-
-        ctx.fill();
-    }
-}
-
-/* Vehicle */
-
-function drawVehicle(x,y,size,color){
-
-    const w=size;
-    const h=size*.62;
-
-    /* Shadow */
-
-    ctx.fillStyle="rgba(0,0,0,.35)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(
-        x,
-        y+h*.42,
-        w*.72,
-        h*.24,
-        0,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-    /* Wheels */
-
-    ctx.fillStyle="#111";
-
-    ctx.fillRect(
-        x-w*.55,
-        y-h*.08,
-        w*.2,
-        h*.65
-    );
-
-    ctx.fillRect(
-        x+w*.35,
-        y-h*.08,
-        w*.2,
-        h*.65
-    );
-
-    /* Body */
-
-    ctx.fillStyle=color;
-
-    ctx.beginPath();
-
-    ctx.roundRect(
-        x-w*.5,
-        y-h*.5,
-        w,
-        h,
-        h*.2
-    );
-
-    ctx.fill();
-
-    /* Front */
-
-    ctx.fillStyle="#eee";
-
-    ctx.fillRect(
-        x-w*.35,
-        y-h*.19,
-        w*.7,
-        h*.12
-    );
-
-    /* Head */
-
-    ctx.fillStyle="#ffd0a0";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        x,
-        y-h*.67,
-        h*.32,
-        0,
-        Math.PI*2
-    );
-
-    ctx.fill();
-
-    /* Head covering */
-
-    ctx.fillStyle=color;
-
-    ctx.beginPath();
-
-    ctx.arc(
-        x,
-        y-h*.73,
-        h*.34,
-        Math.PI,
-        Math.PI*2
-    );
-
-    ctx.fill();
-}
-
-/* Countdown */
-
-function drawCountdown(){
-
-    if(countdown<=0)return;
-
-    ctx.fillStyle="rgba(0,0,0,.25)";
-
-    ctx.fillRect(
-        0,
-        0,
-        W,
-        H
-    );
-
-    ctx.fillStyle=
-        countdown===1
-            ?"lime"
-            :"white";
-
-    ctx.font=
-        "bold "+
-        Math.min(W,H)*.2+
-        "px Arial";
-
+    ctx.font=size+"px Arial";
     ctx.textAlign="center";
 
     ctx.fillText(
-        countdown,
-        W/2,
-        H/2
+      o.type==="boost"?"⚡":"🍌",
+      x,
+      y-size*.3
     );
+  }
 }
 
-/* Rendering */
+
+/* ---------------------------
+   OTHER VEHICLES
+---------------------------- */
+
+function drawOthers(){
+
+  for(const v of vehicles){
+
+    let dz=v.z-vehicle.z;
+
+    if(dz<0)dz+=TRACK;
+
+    if(dz>1800)continue;
+
+    const p=1-dz/1800;
+
+    const horizon=H*.36;
+
+    const y=
+      horizon+
+      Math.pow(p,1.75)*(H-horizon);
+
+    const seg=getSegment(v.z);
+
+    const cx=
+      W/2+
+      seg.curve*p*W*.22;
+
+    const roadWidth=
+      W*.08+p*W*.46;
+
+    const x=
+      cx+
+      v.x*roadWidth;
+
+    const scale=.15+p*.95;
+
+    drawVehicle(x,y,scale,v.color);
+  }
+}
+
+
+/* ---------------------------
+   MAIN VEHICLE
+---------------------------- */
+
+function drawMain(){
+
+  const x=
+    W/2+
+    vehicle.x*W*.32;
+
+  const y=
+    H*.82;
+
+  drawVehicle(
+    x,
+    y,
+    1.35,
+    "#e53935",
+    true
+  );
+}
+
+
+function drawVehicle(x,y,scale,color,main=false){
+
+  const w=48*scale;
+  const h=72*scale;
+
+  /*
+    shadow
+  */
+
+  ctx.fillStyle="rgba(0,0,0,.38)";
+
+  ctx.beginPath();
+
+  ctx.ellipse(
+    x,
+    y+5*scale,
+    w*.7,
+    h*.2,
+    0,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /*
+    wheels
+  */
+
+  ctx.fillStyle="#151515";
+
+  ctx.fillRect(
+    x-w*.58,
+    y-h*.38,
+    w*.23,
+    h*.43
+  );
+
+  ctx.fillRect(
+    x+w*.35,
+    y-h*.38,
+    w*.23,
+    h*.43
+  );
+
+
+  /*
+    body
+  */
+
+  ctx.fillStyle=color;
+
+  ctx.beginPath();
+
+  ctx.moveTo(x-w*.43,y);
+  ctx.lineTo(x-w*.52,y-h*.55);
+  ctx.quadraticCurveTo(
+    x-w*.45,
+    y-h*.88,
+    x,
+    y-h
+  );
+
+  ctx.quadraticCurveTo(
+    x+w*.45,
+    y-h*.88,
+    x+w*.52,
+    y-h*.55
+  );
+
+  ctx.lineTo(x+w*.43,y);
+
+  ctx.closePath();
+  ctx.fill();
+
+
+  /*
+    windscreen
+  */
+
+  ctx.fillStyle="#74d5ef";
+
+  ctx.beginPath();
+
+  ctx.moveTo(x-w*.28,y-h*.61);
+  ctx.lineTo(x+w*.28,y-h*.61);
+  ctx.lineTo(x+w*.22,y-h*.83);
+  ctx.lineTo(x-w*.22,y-h*.83);
+
+  ctx.closePath();
+  ctx.fill();
+
+
+  /*
+    front highlight
+  */
+
+  ctx.fillStyle="#ffffff88";
+
+  ctx.fillRect(
+    x-w*.08,
+    y-h*.28,
+    w*.16,
+    h*.18
+  );
+
+
+  /*
+    boost flame
+  */
+
+  if(main && vehicle.boost>0){
+
+    ctx.fillStyle="#ffca28";
+
+    ctx.beginPath();
+
+    ctx.moveTo(x-w*.25,y);
+    ctx.lineTo(x-w*.08,y+28*scale);
+    ctx.lineTo(x,y+12*scale);
+    ctx.lineTo(x+w*.08,y+28*scale);
+    ctx.lineTo(x+w*.25,y);
+
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle="#fff";
+
+    ctx.beginPath();
+
+    ctx.moveTo(x-w*.08,y);
+    ctx.lineTo(x,y+18*scale);
+    ctx.lineTo(x+w*.08,y);
+
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+
+/* ---------------------------
+   START COUNTDOWN
+---------------------------- */
+
+function drawCountdown(){
+
+  if(countdown<=0)return;
+
+  ctx.textAlign="center";
+
+  ctx.font="900 80px Arial";
+
+  ctx.fillStyle="#fff";
+
+  ctx.fillText(
+    Math.ceil(countdown),
+    W/2,
+    H*.43
+  );
+}
+
+
+/* ---------------------------
+   RENDER
+---------------------------- */
 
 function render(){
 
-    drawBackground();
-    drawRoad();
-    drawBarriers();
-    drawStrips();
-    drawObjects();
-    drawOthers();
-    drawMain();
-    drawCountdown();
+  ctx.clearRect(0,0,W,H);
 
-    requestAnimationFrame(render);
+  drawBackground();
+  drawRoad();
+  drawScenery();
+  drawBarriers();
+  drawStrips();
+  drawObjects();
+  drawOthers();
+  drawMain();
+  drawCountdown();
 }
 
-/* Updating */
 
-function update(){
+/* ---------------------------
+   UPDATE
+---------------------------- */
 
-    if(!active||finished){
-        requestAnimationFrame(update);
-        return;
-    }
+function update(dt){
 
-    moveVehicle();
-    moveOthers();
-    updateRank();
+  if(!active)return;
 
-    requestAnimationFrame(update);
+  if(countdown>0){
+    countdown-=dt;
+  }
+
+  moveVehicle(dt);
+  moveOthers(dt);
+  checkObjects();
+  updateRank();
+
+  if(keys.space && !usedSpace){
+
+    useObject();
+    usedSpace=true;
+
+  }
+
+  if(!keys.space){
+    usedSpace=false;
+  }
 }
+
+
+/* ---------------------------
+   LOOP
+---------------------------- */
+
+function loop(now){
+
+  const dt=Math.min(
+    .035,
+    (now-last)/1000
+  );
+
+  last=now;
+
+  update(dt);
+  render();
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+
+
+/* ---------------------------
+   START SCREEN PREVIEW
+---------------------------- */
 
 render();
-update();
 
 </script>
-
 </body>
 </html>
-```
