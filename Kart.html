@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turbo Kart Rush</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        user-select: none;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #65c9ff;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #game {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background: #65c9ff;
+    }
+
+    #hud {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        color: white;
+        text-shadow: 2px 2px 3px #000;
+        font-weight: bold;
+    }
+
+    #title {
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        font-size: clamp(20px, 3vw, 34px);
+    }
+
+    #lap {
+        position: absolute;
+        top: 20px;
+        right: 25px;
+        font-size: clamp(20px, 3vw, 30px);
+    }
+
+    #position {
+        position: absolute;
+        top: 62px;
+        right: 25px;
+        font-size: clamp(18px, 2.5vw, 26px);
+    }
+
+    #speed {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        font-size: 20px;
+    }
+
+    #item {
+        position: absolute;
+        bottom: 18px;
+        right: 20px;
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        background: rgba(0,0,0,.45);
+        border: 3px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+    }
+
+    #message {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: clamp(35px, 8vw, 90px);
+        font-weight: 900;
+        color: white;
+        text-shadow:
+            4px 4px 0 #000,
+            -2px -2px 0 #000;
+        display: none;
+    }
+
+    #startScreen {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        background:
+            radial-gradient(circle at 50% 35%, #fff27a 0%, #ffae3d 18%, #ee456d 50%, #4e39a5 100%);
+        color: white;
+        text-align: center;
+    }
+
+    #startScreen h1 {
+        margin: 0;
+        font-size: clamp(45px, 10vw, 100px);
+        text-shadow: 6px 6px 0 #000;
+        transform: rotate(-2deg);
+    }
+
+    #startScreen p {
+        font-size: 20px;
+        max-width: 600px;
+        line-height: 1.5;
+        text-shadow: 2px 2px 2px #000;
+    }
+
+    button {
+        border: 0;
+        border-radius: 18px;
+        padding: 18px 45px;
+        font-size: 25px;
+        font-weight: bold;
+        color: white;
+        background: #ff3b30;
+        box-shadow: 0 7px 0 #9e1711;
+        cursor: pointer;
+    }
+
+    button:active {
+        transform: translateY(5px);
+        box-shadow: 0 2px 0 #9e1711;
+    }
+
+    #controls {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+        gap: 12px;
+        z-index: 10;
+    }
+
+    .control {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        border: 3px solid white;
+        background: rgba(0,0,0,.45);
+        color: white;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 700px) {
+        #controls {
+            display: flex;
+        }
+
+        #speed {
+            bottom: 100px;
+        }
+
+        #item {
+            bottom: 100px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud">
+    <div id="title">🏎️ TURBO KART RUSH</div>
+    <div id="lap">Lap 1 / 3</div>
+    <div id="position">1st</div>
+    <div id="speed">Speed: 0 km/h</div>
+    <div id="item">?</div>
+    <div id="message"></div>
+</div>
+
+<div id="startScreen">
+    <h1>TURBO KART</h1>
+    <p>
+        A tiny arcade kart racer built entirely with HTML5 Canvas.<br>
+        Use <b>WASD</b> or the <b>arrow keys</b> to drive.
+        Collect items and hit boost pads!
+    </p>
+    <button id="startButton">START RACE</button>
+</div>
+
+<div id="controls">
+    <div class="control" id="left">◀</div>
+    <div class="control" id="accelerate">▲</div>
+    <div class="control" id="brake">▼</div>
+    <div class="control" id="right">▶</div>
+</div>
+
+<script>
+/* =========================================================
+   TURBO KART RUSH
+   Single-file HTML5 Canvas kart racer
+   ========================================================= */
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let W = window.innerWidth;
+let H = window.innerHeight;
+
+function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+
+window.addEventListener("resize", resize);
+resize();
+
+/* ---------------------------------------------------------
+   Game state
+--------------------------------------------------------- */
+
+let gameStarted = false;
+let gameOver = false;
+let countdown = 0;
+
+const TOTAL_LAPS = 3;
+
+let player = {
+    x: 0,
+    z: 0,
+    speed: 0,
+    maxSpeed: 1.0,
+    acceleration: 0.012,
+    braking: 0.025,
+    handling: 0.045,
+    lap: 1,
+    progress: 0,
+    item: null,
+    boost: 0
+};
+
+let racers = [];
+
+/* ---------------------------------------------------------
+   Track
+--------------------------------------------------------- */
+
+const trackLength = 24000;
+
+/*
+    Each segment contains:
+    curve = horizontal bend
+    hill = vertical movement
+*/
+const track = [];
+
+for (let i = 0; i < trackLength; i += 200) {
+
+    let curve = 0;
+    let hill = 0;
+
+    if (i > 1500 && i < 4500) curve = 0.8;
+    if (i > 4500 && i < 6500) curve = -1.0;
+    if (i > 7000 && i < 9500) curve = 1.3;
+    if (i > 10000 && i < 12500) curve = -0.7;
+    if (i > 13500 && i < 16000) curve = 1.7;
+    if (i > 16500 && i < 19000) curve = -1.4;
+    if (i > 20000 && i < 22000) curve = 0.8;
+
+    if (i > 3000 && i < 5000) hill = 0.7;
+    if (i > 9000 && i < 11500) hill = -0.6;
+    if (i > 14000 && i < 16500) hill = 0.9;
+    if (i > 18500 && i < 21000) hill = -0.8;
+
+    track.push({
+        z: i,
+        curve,
+        hill
+    });
+}
+
+/* ---------------------------------------------------------
+   Items
+--------------------------------------------------------- */
+
+const items = [];
+
+for (let i = 1000; i < trackLength; i += 1450) {
+    items.push({
+        z: i,
+        x: Math.random() * 1.4 - 0.7,
+        type: Math.random() < 0.5 ? "🍌" : "⚡",
+        collected: false
+    });
+}
+
+/* ---------------------------------------------------------
+   Boost pads
+--------------------------------------------------------- */
+
+const boosts = [];
+
+for (let i = 2200; i < trackLength; i += 4200) {
+    boosts.push({
+        z: i,
+        x: 0
+    });
+}
+
+/* ---------------------------------------------------------
+   AI racers
+--------------------------------------------------------- */
+
+const colors = [
+    "#ff3b30",
+    "#35d04f",
+    "#ffcc00",
+    "#9b59ff",
+    "#00bfff",
+    "#ff6b35"
+];
+
+function createRacers() {
+
+    racers = [];
+
+    for (let i = 0; i < 6; i++) {
+
+        racers.push({
+            x: (i - 2.5) * 0.28,
+            z: 500 - i * 180,
+            speed: 0.72 + Math.random() * 0.13,
+            lap: 1,
+            progress: 0,
+            color: colors[i],
+            wobble: Math.random() * 10
+        });
+    }
+}
+
+/* ---------------------------------------------------------
+   Keyboard
+--------------------------------------------------------- */
+
+const keys = {};
+
+window.addEventListener("keydown", e => {
+    keys[e.key.toLowerCase()] = true;
+
+    if ([
+        "arrowup",
+        "arrowdown",
+        "arrowleft",
+        "arrowright",
+        " "
+    ].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+    }
+
+    if (e.key === " " && player.item) {
+        useItem();
+    }
+});
+
+window.addEventListener("keyup", e => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+/* ---------------------------------------------------------
+   Touch controls
+--------------------------------------------------------- */
+
+function touchControl(id, key) {
+
+    const el = document.getElementById(id);
+
+    const down = e => {
+        e.preventDefault();
+        keys[key] = true;
+    };
+
+    const up = e => {
+        e.preventDefault();
+        keys[key] = false;
+    };
+
+    el.addEventListener("touchstart", down, { passive: false });
+    el.addEventListener("touchend", up, { passive: false });
+    el.addEventListener("touchcancel", up, { passive: false });
+}
+
+touchControl("left", "arrowleft");
+touchControl("right", "arrowright");
+touchControl("accelerate", "arrowup");
+touchControl("brake", "arrowdown");
+
+/* ---------------------------------------------------------
+   Start button
+--------------------------------------------------------- */
+
+document.getElementById("startButton").addEventListener("click", startGame);
+
+function startGame() {
+
+    document.getElementById("startScreen").style.display = "none";
+
+    gameStarted = true;
+    gameOver = false;
+
+    player.x = 0;
+    player.z = 0;
+    player.speed = 0;
+    player.lap = 1;
+    player.progress = 0;
+    player.item = null;
+    player.boost = 0;
+
+    items.forEach(item => item.collected = false);
+
+    createRacers();
+
+    countdown = 3;
+
+    setTimeout(() => countdown = 2, 1000);
+    setTimeout(() => countdown = 1, 2000);
+    setTimeout(() => countdown = 0, 3000);
+}
+
+/* ---------------------------------------------------------
+   Utility
+--------------------------------------------------------- */
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+function wrapZ(z) {
+    z %= trackLength;
+    if (z < 0) z += trackLength;
+    return z;
+}
+
+function getTrackSegment(z) {
+
+    z = wrapZ(z);
+
+    const index = Math.floor(z / 200);
+
+    return track[index] || track[0];
+}
+
+/* ---------------------------------------------------------
+   Player update
+--------------------------------------------------------- */
+
+function updatePlayer() {
+
+    const accelerating =
+        keys["arrowup"] ||
+        keys["w"];
+
+    const braking =
+        keys["arrowdown"] ||
+        keys["s"];
+
+    const left =
+        keys["arrowleft"] ||
+        keys["a"];
+
+    const right =
+        keys["arrowright"] ||
+        keys["d"];
+
+    if (accelerating) {
+        player.speed += player.acceleration;
+    } else {
+        player.speed -= 0.006;
+    }
+
+    if (braking) {
+        player.speed -= player.braking;
+    }
+
+    player.speed = clamp(player.speed, 0, player.maxSpeed);
+
+    let steer = 0;
+
+    if (left) steer -= player.handling;
+    if (right) steer += player.handling;
+
+    player.x += steer * (0.7 + player.speed);
+
+    /* Keep the kart roughly on the track */
+    player.x = clamp(player.x, -1.35, 1.35);
+
+    /* Off-road slowdown */
+    if (Math.abs(player.x) > 1.05) {
+        player.speed *= 0.97;
+    }
+
+    /* Boost */
+    if (player.boost > 0) {
+        player.speed += 0.025;
+        player.boost--;
+    }
+
+    player.z += player.speed * 160;
+
+    if (player.z >= trackLength) {
+        player.z -= trackLength;
+        player.lap++;
+
+        if (player.lap > TOTAL_LAPS) {
+            finishRace();
+        }
+    }
+
+    player.progress =
+        (player.lap - 1) * trackLength +
+        player.z;
+
+    checkItems();
+    checkBoosts();
+}
+
+/* ---------------------------------------------------------
+   Items
+--------------------------------------------------------- */
+
+function checkItems() {
+
+    for (const item of items) {
+
+        if (item.collected) continue;
+
+        const distance = Math.abs(
+            wrapZ(player.z - item.z)
+        );
+
+        if (
+            distance < 180 &&
+            Math.abs(player.x - item.x) < 0.35
+        ) {
+
+            item.collected = true;
+
+            player.item = item.type;
+
+            updateItemDisplay();
+        }
+    }
+}
+
+function updateItemDisplay() {
+
+    document.getElementById("item").textContent =
+        player.item || "?";
+}
+
+function useItem() {
+
+    if (!player.item) return;
+
+    if (player.item === "⚡") {
+        player.boost = 80;
+    }
+
+    if (player.item === "🍌") {
+
+        /* Slow down nearby AI */
+        for (const racer of racers) {
+
+            const distance =
+                Math.abs(wrapZ(racer.z - player.z));
+
+            if (distance < 900) {
+                racer.speed *= 0.75;
+            }
+        }
+    }
+
+    player.item = null;
+    updateItemDisplay();
+}
+
+/* ---------------------------------------------------------
+   Boost pads
+--------------------------------------------------------- */
+
+function checkBoosts() {
+
+    for (const boost of boosts) {
+
+        const distance =
+            Math.abs(wrapZ(player.z - boost.z));
+
+        if (
+            distance < 140 &&
+            Math.abs(player.x - boost.x) < 0.4
+        ) {
+            player.boost = 45;
+        }
+    }
+}
+
+/* ---------------------------------------------------------
+   AI update
+--------------------------------------------------------- */
+
+function updateAI() {
+
+    for (const racer of racers) {
+
+        racer.z += racer.speed * 150;
+
+        racer.wobble += 0.02;
+
+        /*
+            Gentle steering movement makes the AI
+            look less robotic.
+        */
+        racer.x += Math.sin(racer.wobble) * 0.0015;
+
+        racer.x = clamp(racer.x, -1.0, 1.0);
+
+        if (racer.z >= trackLength) {
+            racer.z -= trackLength;
+            racer.lap++;
+        }
+
+        racer.progress =
+            (racer.lap - 1) * trackLength +
+            racer.z;
+    }
+}
+
+/* ---------------------------------------------------------
+   Position
+--------------------------------------------------------- */
+
+function calculatePosition() {
+
+    let position = 1;
+
+    for (const racer of racers) {
+
+        if (racer.progress > player.progress) {
+            position++;
+        }
+    }
+
+    const suffix =
+        position === 1 ? "st" :
+        position === 2 ? "nd" :
+        position === 3 ? "rd" : "th";
+
+    document.getElementById("position").textContent =
+        position + suffix;
+}
+
+/* ---------------------------------------------------------
+   Finish
+--------------------------------------------------------- */
+
+function finishRace() {
+
+    if (gameOver) return;
+
+    gameOver = true;
+
+    const message = document.getElementById("message");
+
+    message.innerHTML = "🏆 FINISH!";
+    message.style.display = "block";
+
+    setTimeout(() => {
+
+        message.innerHTML =
+            "🏁 RACE COMPLETE<br>" +
+            "<span style='font-size:.35em'>Press R to restart</span>";
+
+    }, 1200);
+}
+
+window.addEventListener("keydown", e => {
+
+    if (
+        gameOver &&
+        e.key.toLowerCase() === "r"
+    ) {
+        startGame();
+        document.getElementById("message").style.display = "none";
+    }
+});
+
+/* ---------------------------------------------------------
+   Sky
+--------------------------------------------------------- */
+
+function drawSky() {
+
+    const gradient = ctx.createLinearGradient(
+        0, 0, 0, H
+    );
+
+    gradient.addColorStop(0, "#4bbcff");
+    gradient.addColorStop(0.55, "#b8edff");
+    gradient.addColorStop(1, "#70d46a");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, W, H);
+
+    /* Sun */
+
+    ctx.fillStyle = "#fff3a0";
+
+    ctx.beginPath();
+    ctx.arc(
+        W * 0.78,
+        H * 0.18,
+        Math.min(W, H) * 0.07,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    /* Clouds */
+
+    drawCloud(W * 0.2, H * 0.18, 1);
+    drawCloud(W * 0.55, H * 0.12, 0.7);
+    drawCloud(W * 0.85, H * 0.3, 0.8);
+}
+
+function drawCloud(x, y, scale) {
+
+    ctx.fillStyle = "rgba(255,255,255,.9)";
+
+    ctx.beginPath();
+
+    ctx.arc(x, y, 25 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 30 * scale, y - 10 * scale, 35 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 70 * scale, y, 25 * scale, 0, Math.PI * 2);
+
+    ctx.fill();
+}
+
+/* ---------------------------------------------------------
+   Track rendering
+--------------------------------------------------------- */
+
+function drawTrack() {
+
+    const horizon = H * 0.43;
+
+    /* Grass */
+
+    ctx.fillStyle = "#55bd4f";
+
+    ctx.fillRect(
+        0,
+        horizon,
+        W,
+        H - horizon
+    );
+
+    const drawDistance = 70;
+
+    let cameraX = 0;
+
+    for (let i = drawDistance; i > 0; i--) {
+
+        const z =
+            player.z +
+            i * 180;
+
+        const segment =
+            getTrackSegment(z);
+
+        const depth =
+            1 - i / drawDistance;
+
+        const roadY =
+            horizon +
+            Math.pow(depth, 2) * H * 0.57;
+
+        const roadWidth =
+            lerp(
+                W * 0.035,
+                W * 0.9,
+                depth
+            );
+
+        const curve =
+            segment.curve;
+
+        cameraX += curve * 0.003;
+
+        const center =
+            W / 2 +
+            cameraX * W * depth;
+
+        /* Road */
+
+        ctx.fillStyle =
+            (i % 2 === 0)
+                ? "#555"
+                : "#5d5d5d";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            center - roadWidth / 2,
+            roadY
+        );
+
+        ctx.lineTo(
+            center + roadWidth / 2,
+            roadY
+        );
+
+        ctx.lineTo(
+            center + roadWidth * 0.51,
+            roadY + 18
+        );
+
+        ctx.lineTo(
+            center - roadWidth * 0.51,
+            roadY + 18
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        /* Red/white curbs */
+
+        const curbWidth =
+            Math.max(4, roadWidth * 0.035);
+
+        ctx.fillStyle =
+            (Math.floor(i / 2) % 2 === 0)
+                ? "#ffffff"
+                : "#e93636";
+
+        ctx.fillRect(
+            center - roadWidth / 2 - curbWidth,
+            roadY,
+            curbWidth,
+            18
+        );
+
+        ctx.fillRect(
+            center + roadWidth / 2,
+            roadY,
+            curbWidth,
+            18
+        );
+
+        /* Road centre markings */
+
+        if (i % 6 === 0) {
+
+            ctx.fillStyle = "#fff";
+
+            ctx.fillRect(
+                center - Math.max(1, roadWidth * 0.008),
+                roadY,
+                Math.max(2, roadWidth * 0.016),
+                Math.max(2, roadWidth * 0.04)
+            );
+        }
+    }
+}
+
+/* ---------------------------------------------------------
+   Draw trees
+--------------------------------------------------------- */
+
+function drawTrees() {
+
+    for (let i = 0; i < 35; i++) {
+
+        const z =
+            player.z +
+            i * 750 +
+            500;
+
+        const distance =
+            ((z - player.z + trackLength) %
+                trackLength);
+
+        if (distance > 10000) continue;
+
+        const depth =
+            1 - distance / 10000;
+
+        const segment =
+            getTrackSegment(z);
+
+        const curve =
+            segment.curve * distance * 0.002;
+
+        const roadCenter =
+            W / 2 + curve * W;
+
+        const side =
+            i % 2 === 0 ? -1 : 1;
+
+        const x =
+            roadCenter +
+            side *
+            (W * (0.25 + depth * 0.35));
+
+        const y =
+            H * 0.43 +
+            depth * H * 0.5;
+
+        const size =
+            10 + depth * 55;
+
+        /* Trunk */
+
+        ctx.fillStyle = "#70421e";
+
+        ctx.fillRect(
+            x - size * .1,
+            y - size * .55,
+            size * .2,
+            size * .6
+        );
+
+        /* Leaves */
+
+        ctx.fillStyle =
+            i % 3 === 0
+                ? "#218c3a"
+                : "#2eaa45";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y - size * .65,
+            size * .45,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+}
+
+/* ---------------------------------------------------------
+   Draw item boxes
+--------------------------------------------------------- */
+
+function drawItems() {
+
+    for (const item of items) {
+
+        if (item.collected) continue;
+
+        const distance =
+            wrapZ(item.z - player.z);
+
+        if (distance > 6000) continue;
+
+        const depth =
+            1 - distance / 6000;
+
+        if (depth <= 0) continue;
+
+        const segment =
+            getTrackSegment(item.z);
+
+        const curve =
+            segment.curve * distance * 0.002;
+
+        const center =
+            W / 2 + curve * W;
+
+        const roadWidth =
+            lerp(
+                W * .05,
+                W * .8,
+                depth
+            );
+
+        const x =
+            center +
+            item.x * roadWidth;
+
+        const y =
+            H * .43 +
+            Math.pow(depth, 2) * H * .54;
+
+        const size =
+            10 + depth * 35;
+
+        ctx.fillStyle = "#fff";
+
+        ctx.fillRect(
+            x - size / 2,
+            y - size,
+            size,
+            size
+        );
+
+        ctx.fillStyle =
+            item.type === "⚡"
+                ? "#36c7ff"
+                : "#ffe600";
+
+        ctx.font =
+            `${size * 0.75}px Arial`;
+
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            item.type,
+            x,
+            y - size * .2
+        );
+    }
+}
+
+/* ---------------------------------------------------------
+   Draw AI racers
+--------------------------------------------------------- */
+
+function drawAI() {
+
+    for (const racer of racers) {
+
+        let distance =
+            wrapZ(racer.z - player.z);
+
+        if (distance > trackLength / 2) {
+            distance -= trackLength;
+        }
+
+        if (distance < 80 || distance > 6000) {
+            continue;
+        }
+
+        const depth =
+            1 - distance / 6000;
+
+        if (depth <= 0) continue;
+
+        const segment =
+            getTrackSegment(racer.z);
+
+        const curve =
+            segment.curve * distance * 0.002;
+
+        const center =
+            W / 2 + curve * W;
+
+        const roadWidth =
+            lerp(
+                W * .05,
+                W * .8,
+                depth
+            );
+
+        const x =
+            center +
+            racer.x * roadWidth;
+
+        const y =
+            H * .43 +
+            Math.pow(depth, 2) * H * .54;
+
+        drawKart(
+            x,
+            y,
+            15 + depth * 50,
+            racer.color
+        );
+    }
+}
+
+/* ---------------------------------------------------------
+   Draw player's kart
+--------------------------------------------------------- */
+
+function drawPlayer() {
+
+    drawKart(
+        W / 2 + player.x * W * .15,
+        H * .82,
+        65,
+        "#ff3030"
+    );
+
+    /* Boost flames */
+
+    if (player.boost > 0) {
+
+        ctx.fillStyle = "#ffd000";
+
+        ctx.beginPath();
+
+        ctx.moveTo(W / 2 - 15, H * .91);
+        ctx.lineTo(W / 2, H * .99);
+        ctx.lineTo(W / 2 + 15, H * .91);
+
+        ctx.fill();
+    }
+}
+
+/* ---------------------------------------------------------
+   Generic kart drawing
+--------------------------------------------------------- */
+
+function drawKart(x, y, size, color) {
+
+    const w = size;
+    const h = size * .65;
+
+    /* Shadow */
+
+    ctx.fillStyle = "rgba(0,0,0,.3)";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        x,
+        y + h * .3,
+        w * .7,
+        h * .25,
+        0,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    /* Wheels */
+
+    ctx.fillStyle = "#171717";
+
+    ctx.fillRect(
+        x - w * .55,
+        y - h * .1,
+        w * .18,
+        h * .65
+    );
+
+    ctx.fillRect(
+        x + w * .37,
+        y - h * .1,
+        w * .18,
+        h * .65
+    );
+
+    /* Kart body */
+
+    ctx.fillStyle = color;
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+        x - w / 2,
+        y - h / 2,
+        w,
+        h,
+        h * .2
+    );
+
+    ctx.fill();
+
+    /* Front bumper */
+
+    ctx.fillStyle = "#fff";
+
+    ctx.fillRect(
+        x - w * .38,
+        y - h * .2,
+        w * .76,
+        h * .12
+    );
+
+    /* Driver */
+
+    ctx.fillStyle = "#ffd0a0";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        x,
+        y - h * .65,
+        h * .32,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    /* Helmet */
+
+    ctx.fillStyle = color;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        x,
+        y - h * .72,
+        h * .34,
+        Math.PI,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+}
+
+/* ---------------------------------------------------------
+   Boost pad rendering
+--------------------------------------------------------- */
+
+function drawBoosts() {
+
+    for (const boost of boosts) {
+
+        const distance =
+            wrapZ(boost.z - player.z);
+
+        if (distance > 5000) continue;
+
+        const depth =
+            1 - distance / 5000;
+
+        const segment =
+            getTrackSegment(boost.z);
+
+        const curve =
+            segment.curve * distance * 0.002;
+
+        const center =
+            W / 2 + curve * W;
+
+        const width =
+            lerp(
+                W * .04,
+                W * .7,
+                depth
+            );
+
+        const y =
+            H * .43 +
+            Math.pow(depth, 2) * H * .54;
+
+        ctx.fillStyle = "#00d9ff";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            center - width * .2,
+            y
+        );
+
+        ctx.lineTo(
+            center + width * .2,
+            y
+        );
+
+        ctx.lineTo(
+            center + width * .27,
+            y + 10
+        );
+
+        ctx.lineTo(
+            center - width * .27,
+            y + 10
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.fillStyle = "#fff";
+
+        ctx.font =
+            `${Math.max(8, width * .12)}px Arial`;
+
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            "⚡",
+            center,
+            y + 8
+        );
+    }
+}
+
+/* ---------------------------------------------------------
+   Countdown
+--------------------------------------------------------- */
+
+function drawCountdown() {
+
+    if (countdown <= 0) return;
+
+    ctx.fillStyle = "rgba(0,0,0,.25)";
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    ctx.fillStyle =
+        countdown === 1
+            ? "#38ff4b"
+            : "#fff";
+
+    ctx.font =
+        `bold ${Math.min(W, H) * .2}px Arial`;
+
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+        countdown,
+        W / 2,
+        H / 2
+    );
+}
+
+/* ---------------------------------------------------------
+   Main update
+--------------------------------------------------------- */
+
+function update() {
+
+    if (!gameStarted || gameOver) return;
+
+    if (countdown > 0) return;
+
+    updatePlayer();
+    updateAI();
+    calculatePosition();
+
+    document.getElementById("lap").textContent =
+        `Lap ${Math.min(player.lap, TOTAL_LAPS)} / ${TOTAL_LAPS}`;
+
+    document.getElementById("speed").textContent =
+        `Speed: ${Math.round(player.speed * 180)} km/h`;
+}
+
+/* ---------------------------------------------------------
+   Main rendering
+--------------------------------------------------------- */
+
+function render() {
+
+    drawSky();
+    drawTrack();
+    drawTrees();
+    drawBoosts();
+    drawItems();
+    drawAI();
+    drawPlayer();
+    drawCountdown();
+
+    if (!gameStarted) {
+        requestAnimationFrame(render);
+        return;
+    }
+
+    requestAnimationFrame(render);
+}
+
+/* ---------------------------------------------------------
+   Game loop
+--------------------------------------------------------- */
+
+function gameLoop() {
+    update();
+    requestAnimationFrame(gameLoop);
+}
+
+render();
+gameLoop();
+
+</script>
+
+</body>
+</html>
