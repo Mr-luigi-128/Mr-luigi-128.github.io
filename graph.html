@@ -1,331 +1,304 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unnamed doc</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Turbo</title>
 
 <style>
-    * {
-        box-sizing: border-box;
-        user-select: none;
+*{
+    box-sizing:border-box;
+    user-select:none;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#65c9ff;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+#screen{
+    display:block;
+    width:100vw;
+    height:100vh;
+}
+
+#info{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    color:#fff;
+    text-shadow:2px 2px 3px #000;
+    font-weight:bold;
+}
+
+#name{
+    position:absolute;
+    top:15px;
+    left:20px;
+    font-size:clamp(20px,3vw,34px);
+}
+
+#round{
+    position:absolute;
+    top:20px;
+    right:25px;
+    font-size:clamp(20px,3vw,30px);
+}
+
+#rank{
+    position:absolute;
+    top:62px;
+    right:25px;
+    font-size:clamp(18px,2.5vw,26px);
+}
+
+#velocity{
+    position:absolute;
+    bottom:20px;
+    left:20px;
+    font-size:20px;
+}
+
+#slot{
+    position:absolute;
+    bottom:18px;
+    right:20px;
+    width:70px;
+    height:70px;
+    border-radius:16px;
+    background:rgba(0,0,0,.45);
+    border:3px solid #fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:40px;
+}
+
+#notice{
+    position:absolute;
+    left:50%;
+    top:42%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    font-size:clamp(35px,8vw,90px);
+    font-weight:900;
+    color:#fff;
+    text-shadow:4px 4px 0 #000,-2px -2px 0 #000;
+    display:none;
+}
+
+#welcome{
+    position:fixed;
+    inset:0;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            #fff27a 0%,
+            #ffae3d 18%,
+            #ee456d 50%,
+            #4e39a5 100%
+        );
+    color:#fff;
+    text-align:center;
+}
+
+#welcome h1{
+    margin:0;
+    font-size:clamp(45px,10vw,100px);
+    text-shadow:6px 6px 0 #000;
+    transform:rotate(-2deg);
+}
+
+#welcome p{
+    font-size:20px;
+    max-width:600px;
+    line-height:1.5;
+    text-shadow:2px 2px 2px #000;
+}
+
+button{
+    border:0;
+    border-radius:18px;
+    padding:18px 45px;
+    font-size:25px;
+    font-weight:bold;
+    color:#fff;
+    background:#ff3b30;
+    box-shadow:0 7px 0 #9e1711;
+    cursor:pointer;
+}
+
+button:active{
+    transform:translateY(5px);
+    box-shadow:0 2px 0 #9e1711;
+}
+
+#touch{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    display:none;
+    gap:12px;
+    z-index:10;
+}
+
+.pad{
+    width:65px;
+    height:65px;
+    border-radius:50%;
+    border:3px solid #fff;
+    background:rgba(0,0,0,.45);
+    color:#fff;
+    font-size:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+@media(max-width:700px){
+    #touch{
+        display:flex;
     }
 
-    html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #65c9ff;
-        font-family: Arial, Helvetica, sans-serif;
+    #velocity{
+        bottom:100px;
     }
 
-    #game {
-        display: block;
-        width: 100vw;
-        height: 100vh;
-        background: #65c9ff;
+    #slot{
+        bottom:100px;
     }
-
-    #hud {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        color: white;
-        text-shadow: 2px 2px 3px #000;
-        font-weight: bold;
-    }
-
-    #title {
-        position: absolute;
-        top: 15px;
-        left: 20px;
-        font-size: clamp(20px, 3vw, 34px);
-    }
-
-    #lap {
-        position: absolute;
-        top: 20px;
-        right: 25px;
-        font-size: clamp(20px, 3vw, 30px);
-    }
-
-    #position {
-        position: absolute;
-        top: 62px;
-        right: 25px;
-        font-size: clamp(18px, 2.5vw, 26px);
-    }
-
-    #speed {
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-        font-size: 20px;
-    }
-
-    #item {
-        position: absolute;
-        bottom: 18px;
-        right: 20px;
-        width: 70px;
-        height: 70px;
-        border-radius: 16px;
-        background: rgba(0,0,0,.45);
-        border: 3px solid white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 40px;
-    }
-
-    #message {
-        position: absolute;
-        left: 50%;
-        top: 42%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-        font-size: clamp(35px, 8vw, 90px);
-        font-weight: 900;
-        color: white;
-        text-shadow:
-            4px 4px 0 #000,
-            -2px -2px 0 #000;
-        display: none;
-    }
-
-    #startScreen {
-        position: fixed;
-        inset: 0;
-        z-index: 20;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        background:
-            radial-gradient(circle at 50% 35%, #fff27a 0%, #ffae3d 18%, #ee456d 50%, #4e39a5 100%);
-        color: white;
-        text-align: center;
-    }
-
-    #startScreen h1 {
-        margin: 0;
-        font-size: clamp(45px, 10vw, 100px);
-        text-shadow: 6px 6px 0 #000;
-        transform: rotate(-2deg);
-    }
-
-    #startScreen p {
-        font-size: 20px;
-        max-width: 600px;
-        line-height: 1.5;
-        text-shadow: 2px 2px 2px #000;
-    }
-
-    button {
-        border: 0;
-        border-radius: 18px;
-        padding: 18px 45px;
-        font-size: 25px;
-        font-weight: bold;
-        color: white;
-        background: #ff3b30;
-        box-shadow: 0 7px 0 #9e1711;
-        cursor: pointer;
-    }
-
-    button:active {
-        transform: translateY(5px);
-        box-shadow: 0 2px 0 #9e1711;
-    }
-
-    #controls {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: none;
-        gap: 12px;
-        z-index: 10;
-    }
-
-    .control {
-        width: 65px;
-        height: 65px;
-        border-radius: 50%;
-        border: 3px solid white;
-        background: rgba(0,0,0,.45);
-        color: white;
-        font-size: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    @media (max-width: 700px) {
-        #controls {
-            display: flex;
-        }
-
-        #speed {
-            bottom: 100px;
-        }
-
-        #item {
-            bottom: 100px;
-        }
-    }
+}
 </style>
 </head>
 
 <body>
 
-<canvas id="game"></canvas>
+<canvas id="screen"></canvas>
 
-<div id="hud">
-    <div id="title">Not a snake</div>
-    <div id="lap">Lap 1 / 3</div>
-    <div id="position">1st</div>
-    <div id="speed">Speed: 0 km/h</div>
-    <div id="item">?</div>
-    <div id="message"></div>
+<div id="info">
+    <div id="name">TURBO</div>
+    <div id="round">1 / 3</div>
+    <div id="rank">1st</div>
+    <div id="velocity">0 km/h</div>
+    <div id="slot">?</div>
+    <div id="notice"></div>
 </div>
 
-<div id="startScreen">
-    <h1>Not a snake</h1>
+<div id="welcome">
+    <h1>TURBO</h1>
     <p>
-        A tiny recepticle built entirely with HTML5 Canvas.<br>
-        Use <b>WASD</b> or the <b>arrow keys</b> to drive.
-        Wii!
+        Use W A S D or the arrow keys.<br>
+        Collect useful objects and pass over the bright strips.
     </p>
-    <button id="startButton">START RACE</button>
+    <button id="begin">BEGIN</button>
 </div>
 
-<div id="controls">
-    <div class="control" id="left">◀</div>
-    <div class="control" id="accelerate">▲</div>
-    <div class="control" id="brake">▼</div>
-    <div class="control" id="right">▶</div>
+<div id="touch">
+    <div class="pad" id="l">◀</div>
+    <div class="pad" id="u">▲</div>
+    <div class="pad" id="d">▼</div>
+    <div class="pad" id="r">▶</div>
 </div>
 
 <script>
-/* =========================================================
-   not a snake
-   Single-file HTML5 Canvas kart racer
-   ========================================================= */
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas=document.getElementById("screen");
+const ctx=canvas.getContext("2d");
 
-let W = window.innerWidth;
-let H = window.innerHeight;
+let width=innerWidth;
+let height=innerHeight;
 
-function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+function resize(){
+    width=canvas.width=innerWidth;
+    height=canvas.height=innerHeight;
 }
 
-window.addEventListener("resize", resize);
+addEventListener("resize",resize);
 resize();
 
-/* ---------------------------------------------------------
-   process state
---------------------------------------------------------- */
+let active=false;
+let finished=false;
+let count=0;
 
-let gameStarted = false;
-let gameOver = false;
-let countdown = 0;
+const rounds=3;
+const length=24000;
 
-const TOTAL_LAPS = 3;
-
-let player = {
-    x: 0,
-    z: 0,
-    speed: 0,
-    maxSpeed: 1.0,
-    acceleration: 0.012,
-    braking: 0.025,
-    handling: 0.045,
-    lap: 1,
-    progress: 0,
-    item: null,
-    boost: 0
+const vehicle={
+    x:0,
+    z:0,
+    velocity:0,
+    limit:1,
+    acceleration:.012,
+    braking:.025,
+    steering:.045,
+    round:1,
+    distance:0,
+    object:null,
+    boost:0
 };
 
-let racers = [];
+let vehicles=[];
 
-/* ---------------------------------------------------------
-   Track
---------------------------------------------------------- */
+const route=[];
 
-const trackLength = 24000;
+for(let i=0;i<length;i+=200){
 
-/*
-    Each segment contains:
-    curve = horizontal bend
-    hill = vertical movement
-*/
-const track = [];
+    let bend=0;
+    let slope=0;
 
-for (let i = 0; i < trackLength; i += 200) {
+    if(i>1500&&i<4500)bend=.8;
+    if(i>4500&&i<6500)bend=-1;
+    if(i>7000&&i<9500)bend=1.3;
+    if(i>10000&&i<12500)bend=-.7;
+    if(i>13500&&i<16000)bend=1.7;
+    if(i>16500&&i<19000)bend=-1.4;
+    if(i>20000&&i<22000)bend=.8;
 
-    let curve = 0;
-    let hill = 0;
+    if(i>3000&&i<5000)slope=.7;
+    if(i>9000&&i<11500)slope=-.6;
+    if(i>14000&&i<16500)slope=.9;
+    if(i>18500&&i<21000)slope=-.8;
 
-    if (i > 1500 && i < 4500) curve = 0.8;
-    if (i > 4500 && i < 6500) curve = -1.0;
-    if (i > 7000 && i < 9500) curve = 1.3;
-    if (i > 10000 && i < 12500) curve = -0.7;
-    if (i > 13500 && i < 16000) curve = 1.7;
-    if (i > 16500 && i < 19000) curve = -1.4;
-    if (i > 20000 && i < 22000) curve = 0.8;
-
-    if (i > 3000 && i < 5000) hill = 0.7;
-    if (i > 9000 && i < 11500) hill = -0.6;
-    if (i > 14000 && i < 16500) hill = 0.9;
-    if (i > 18500 && i < 21000) hill = -0.8;
-
-    track.push({
-        z: i,
-        curve,
-        hill
+    route.push({
+        z:i,
+        bend:bend,
+        slope:slope
     });
 }
 
-/* ---------------------------------------------------------
-   Items
---------------------------------------------------------- */
+const objects=[];
 
-const items = [];
+for(let i=1000;i<length;i+=1450){
 
-for (let i = 1000; i < trackLength; i += 1450) {
-    items.push({
-        z: i,
-        x: Math.random() * 1.4 - 0.7,
-        type: Math.random() < 0.5 ? "🍌" : "⚡",
-        collected: false
+    objects.push({
+        z:i,
+        x:Math.random()*1.4-.7,
+        type:Math.random()<.5?"🍌":"⚡",
+        used:false
     });
 }
 
-/* ---------------------------------------------------------
-   Boost pads
---------------------------------------------------------- */
+const strips=[];
 
-const boosts = [];
-
-for (let i = 2200; i < trackLength; i += 4200) {
-    boosts.push({
-        z: i,
-        x: 0
+for(let i=2200;i<length;i+=4200){
+    strips.push({
+        z:i,
+        x:0
     });
 }
 
-/* ---------------------------------------------------------
-   AI racers
---------------------------------------------------------- */
-
-const colors = [
+const shades=[
     "#ff3b30",
     "#35d04f",
     "#ffcc00",
@@ -334,1076 +307,965 @@ const colors = [
     "#ff6b35"
 ];
 
-function createRacers() {
+function createVehicles(){
 
-    racers = [];
+    vehicles=[];
 
-    for (let i = 0; i < 6; i++) {
+    for(let i=0;i<6;i++){
 
-        racers.push({
-            x: (i - 2.5) * 0.28,
-            z: 500 - i * 180,
-            speed: 0.72 + Math.random() * 0.13,
-            lap: 1,
-            progress: 0,
-            color: colors[i],
-            wobble: Math.random() * 10
+        vehicles.push({
+            x:(i-2.5)*.28,
+            z:500-i*180,
+            velocity:.72+Math.random()*.13,
+            round:1,
+            distance:0,
+            shade:shades[i],
+            phase:Math.random()*10
         });
     }
 }
 
-/* ---------------------------------------------------------
-   Kb
---------------------------------------------------------- */
+const input={};
 
-const keys = {};
+addEventListener("keydown",e=>{
 
-window.addEventListener("keydown", e => {
-    keys[e.key.toLowerCase()] = true;
+    input[e.key.toLowerCase()]=true;
 
-    if ([
+    if([
         "arrowup",
         "arrowdown",
         "arrowleft",
         "arrowright",
         " "
-    ].includes(e.key.toLowerCase())) {
+    ].includes(e.key.toLowerCase())){
         e.preventDefault();
     }
 
-    if (e.key === " " && player.item) {
-        useItem();
+    if(e.key===" "&&vehicle.object){
+        activate();
     }
 });
 
-window.addEventListener("keyup", e => {
-    keys[e.key.toLowerCase()] = false;
+addEventListener("keyup",e=>{
+    input[e.key.toLowerCase()]=false;
 });
 
-/* ---------------------------------------------------------
-   Touch controls
---------------------------------------------------------- */
+function bindTouch(id,key){
 
-function touchControl(id, key) {
+    const element=document.getElementById(id);
 
-    const el = document.getElementById(id);
-
-    const down = e => {
+    const down=e=>{
         e.preventDefault();
-        keys[key] = true;
+        input[key]=true;
     };
 
-    const up = e => {
+    const up=e=>{
         e.preventDefault();
-        keys[key] = false;
+        input[key]=false;
     };
 
-    el.addEventListener("touchstart", down, { passive: false });
-    el.addEventListener("touchend", up, { passive: false });
-    el.addEventListener("touchcancel", up, { passive: false });
+    element.addEventListener("touchstart",down,{passive:false});
+    element.addEventListener("touchend",up,{passive:false});
+    element.addEventListener("touchcancel",up,{passive:false});
 }
 
-touchControl("left", "arrowleft");
-touchControl("right", "arrowright");
-touchControl("accelerate", "arrowup");
-touchControl("brake", "arrowdown");
+bindTouch("l","arrowleft");
+bindTouch("r","arrowright");
+bindTouch("u","arrowup");
+bindTouch("d","arrowdown");
 
-/* ---------------------------------------------------------
-   Start button
---------------------------------------------------------- */
+document.getElementById("begin").onclick=begin;
 
-document.getElementById("startButton").addEventListener("click", startGame);
+function begin(){
 
-function startGame() {
+    document.getElementById("welcome").style.display="none";
 
-    document.getElementById("startScreen").style.display = "none";
+    active=true;
+    finished=false;
 
-    gameStarted = true;
-    gameOver = false;
+    vehicle.x=0;
+    vehicle.z=0;
+    vehicle.velocity=0;
+    vehicle.round=1;
+    vehicle.distance=0;
+    vehicle.object=null;
+    vehicle.boost=0;
 
-    player.x = 0;
-    player.z = 0;
-    player.speed = 0;
-    player.lap = 1;
-    player.progress = 0;
-    player.item = null;
-    player.boost = 0;
+    objects.forEach(x=>x.used=false);
 
-    items.forEach(item => item.collected = false);
+    createVehicles();
 
-    createRacers();
+    count=3;
 
-    countdown = 3;
-
-    setTimeout(() => countdown = 2, 1000);
-    setTimeout(() => countdown = 1, 2000);
-    setTimeout(() => countdown = 0, 3000);
+    setTimeout(()=>count=2,1000);
+    setTimeout(()=>count=1,2000);
+    setTimeout(()=>count=0,3000);
 }
 
-/* ---------------------------------------------------------
-   Utility
---------------------------------------------------------- */
-
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
+function clamp(value,min,max){
+    return Math.max(min,Math.min(max,value));
 }
 
-function lerp(a, b, t) {
-    return a + (b - a) * t;
+function wrap(value){
+
+    value%=length;
+
+    if(value<0)value+=length;
+
+    return value;
 }
 
-function wrapZ(z) {
-    z %= trackLength;
-    if (z < 0) z += trackLength;
-    return z;
+function segment(value){
+
+    return route[Math.floor(wrap(value)/200)]||route[0];
 }
 
-function getTrackSegment(z) {
+function updateVehicle(){
 
-    z = wrapZ(z);
+    const forward=input.arrowup||input.w;
+    const back=input.arrowdown||input.s;
+    const left=input.arrowleft||input.a;
+    const right=input.arrowright||input.d;
 
-    const index = Math.floor(z / 200);
-
-    return track[index] || track[0];
-}
-
-/* ---------------------------------------------------------
-   Player update
---------------------------------------------------------- */
-
-function updatePlayer() {
-
-    const accelerating =
-        keys["arrowup"] ||
-        keys["w"];
-
-    const braking =
-        keys["arrowdown"] ||
-        keys["s"];
-
-    const left =
-        keys["arrowleft"] ||
-        keys["a"];
-
-    const right =
-        keys["arrowright"] ||
-        keys["d"];
-
-    if (accelerating) {
-        player.speed += player.acceleration;
-    } else {
-        player.speed -= 0.006;
+    if(forward){
+        vehicle.velocity+=vehicle.acceleration;
+    }else{
+        vehicle.velocity-=.006;
     }
 
-    if (braking) {
-        player.speed -= player.braking;
+    if(back){
+        vehicle.velocity-=vehicle.braking;
     }
 
-    player.speed = clamp(player.speed, 0, player.maxSpeed);
+    vehicle.velocity=clamp(
+        vehicle.velocity,
+        0,
+        vehicle.limit
+    );
 
-    let steer = 0;
+    let steer=0;
 
-    if (left) steer -= player.handling;
-    if (right) steer += player.handling;
+    if(left)steer-=vehicle.steering;
+    if(right)steer+=vehicle.steering;
 
-    player.x += steer * (0.7 + player.speed);
+    vehicle.x+=steer*(.7+vehicle.velocity);
 
-    /* Keep the kart roughly on the track */
-    player.x = clamp(player.x, -1.35, 1.35);
+    vehicle.x=clamp(
+        vehicle.x,
+        -1.35,
+        1.35
+    );
 
-    /* Off-road slowdown */
-    if (Math.abs(player.x) > 1.05) {
-        player.speed *= 0.97;
+    if(Math.abs(vehicle.x)>1.05){
+        vehicle.velocity*=.97;
     }
 
-    /* Boost */
-    if (player.boost > 0) {
-        player.speed += 0.025;
-        player.boost--;
+    if(vehicle.boost>0){
+        vehicle.velocity+=.025;
+        vehicle.boost--;
     }
 
-    player.z += player.speed * 160;
+    vehicle.z+=vehicle.velocity*160;
 
-    if (player.z >= trackLength) {
-        player.z -= trackLength;
-        player.lap++;
+    if(vehicle.z>=length){
 
-        if (player.lap > TOTAL_LAPS) {
-            finishRace();
+        vehicle.z-=length;
+        vehicle.round++;
+
+        if(vehicle.round>rounds){
+            finish();
         }
     }
 
-    player.progress =
-        (player.lap - 1) * trackLength +
-        player.z;
+    vehicle.distance=
+        (vehicle.round-1)*length+
+        vehicle.z;
 
-    checkItems();
-    checkBoosts();
+    inspectObjects();
+    inspectStrips();
 }
 
-/* ---------------------------------------------------------
-   Items
---------------------------------------------------------- */
+function inspectObjects(){
 
-function checkItems() {
+    for(const object of objects){
 
-    for (const item of items) {
+        if(object.used)continue;
 
-        if (item.collected) continue;
+        const gap=
+            Math.abs(wrap(vehicle.z-object.z));
 
-        const distance = Math.abs(
-            wrapZ(player.z - item.z)
-        );
+        if(
+            gap<180&&
+            Math.abs(vehicle.x-object.x)<.35
+        ){
 
-        if (
-            distance < 180 &&
-            Math.abs(player.x - item.x) < 0.35
-        ) {
-
-            item.collected = true;
-
-            player.item = item.type;
-
-            updateItemDisplay();
+            object.used=true;
+            vehicle.object=object.type;
+            showObject();
         }
     }
 }
 
-function updateItemDisplay() {
+function showObject(){
 
-    document.getElementById("item").textContent =
-        player.item || "?";
+    document.getElementById("slot").textContent=
+        vehicle.object||"?";
 }
 
-function useItem() {
+function activate(){
 
-    if (!player.item) return;
+    if(!vehicle.object)return;
 
-    if (player.item === "⚡") {
-        player.boost = 80;
+    if(vehicle.object==="⚡"){
+        vehicle.boost=80;
     }
 
-    if (player.item === "🍌") {
+    if(vehicle.object==="🍌"){
 
-        /* Slow down nearby AI */
-        for (const racer of racers) {
+        for(const other of vehicles){
 
-            const distance =
-                Math.abs(wrapZ(racer.z - player.z));
+            const gap=
+                Math.abs(
+                    wrap(other.z-vehicle.z)
+                );
 
-            if (distance < 900) {
-                racer.speed *= 0.75;
+            if(gap<900){
+                other.velocity*=.75;
             }
         }
     }
 
-    player.item = null;
-    updateItemDisplay();
+    vehicle.object=null;
+
+    showObject();
 }
 
-/* ---------------------------------------------------------
-   Boost pads
---------------------------------------------------------- */
+function inspectStrips(){
 
-function checkBoosts() {
+    for(const strip of strips){
 
-    for (const boost of boosts) {
+        const gap=
+            Math.abs(
+                wrap(vehicle.z-strip.z)
+            );
 
-        const distance =
-            Math.abs(wrapZ(player.z - boost.z));
-
-        if (
-            distance < 140 &&
-            Math.abs(player.x - boost.x) < 0.4
-        ) {
-            player.boost = 45;
+        if(
+            gap<140&&
+            Math.abs(vehicle.x-strip.x)<.4
+        ){
+            vehicle.boost=45;
         }
     }
 }
 
-/* ---------------------------------------------------------
-   AI update
---------------------------------------------------------- */
+function updateVehicles(){
 
-function updateAI() {
+    for(const other of vehicles){
 
-    for (const racer of racers) {
+        other.z+=other.velocity*150;
 
-        racer.z += racer.speed * 150;
+        other.phase+=.02;
 
-        racer.wobble += 0.02;
+        other.x+=Math.sin(other.phase)*.0015;
 
-        /*
-            Gentle steering movement makes the AI
-            look less robotic.
-        */
-        racer.x += Math.sin(racer.wobble) * 0.0015;
+        other.x=clamp(
+            other.x,
+            -1,
+            1
+        );
 
-        racer.x = clamp(racer.x, -1.0, 1.0);
+        if(other.z>=length){
 
-        if (racer.z >= trackLength) {
-            racer.z -= trackLength;
-            racer.lap++;
+            other.z-=length;
+            other.round++;
         }
 
-        racer.progress =
-            (racer.lap - 1) * trackLength +
-            racer.z;
+        other.distance=
+            (other.round-1)*length+
+            other.z;
     }
 }
 
-/* ---------------------------------------------------------
-   Position
---------------------------------------------------------- */
+function updateRank(){
 
-function calculatePosition() {
+    let rank=1;
 
-    let position = 1;
+    for(const other of vehicles){
 
-    for (const racer of racers) {
-
-        if (racer.progress > player.progress) {
-            position++;
+        if(other.distance>vehicle.distance){
+            rank++;
         }
     }
 
-    const suffix =
-        position === 1 ? "st" :
-        position === 2 ? "nd" :
-        position === 3 ? "rd" : "th";
+    const ending=
+        rank===1?"st":
+        rank===2?"nd":
+        rank===3?"rd":"th";
 
-    document.getElementById("position").textContent =
-        position + suffix;
+    document.getElementById("rank").textContent=
+        rank+ending;
 }
 
-/* ---------------------------------------------------------
-   Finish
---------------------------------------------------------- */
+function finish(){
 
-function finishRace() {
+    if(finished)return;
 
-    if (gameOver) return;
+    finished=true;
 
-    gameOver = true;
+    const notice=
+        document.getElementById("notice");
 
-    const message = document.getElementById("message");
+    notice.innerHTML="🏆 FINISH!";
+    notice.style.display="block";
 
-    message.innerHTML = "🏆 FINISH!";
-    message.style.display = "block";
+    setTimeout(()=>{
 
-    setTimeout(() => {
-
-        message.innerHTML =
-            "🏁 RACE COMPLETE<br>" +
+        notice.innerHTML=
+            "COMPLETE<br>"+
             "<span style='font-size:.35em'>Press R to restart</span>";
 
-    }, 1200);
+    },1200);
 }
 
-window.addEventListener("keydown", e => {
+addEventListener("keydown",e=>{
 
-    if (
-        gameOver &&
-        e.key.toLowerCase() === "r"
-    ) {
-        startGame();
-        document.getElementById("message").style.display = "none";
+    if(
+        finished&&
+        e.key.toLowerCase()==="r"
+    ){
+        begin();
+        document.getElementById("notice").style.display="none";
     }
 });
 
-/* ---------------------------------------------------------
-   Sky
---------------------------------------------------------- */
+function sky(){
 
-function drawSky() {
+    const gradient=
+        ctx.createLinearGradient(
+            0,0,0,height
+        );
 
-    const gradient = ctx.createLinearGradient(
-        0, 0, 0, H
+    gradient.addColorStop(0,"#4bbcff");
+    gradient.addColorStop(.55,"#b8edff");
+    gradient.addColorStop(1,"#70d46a");
+
+    ctx.fillStyle=gradient;
+
+    ctx.fillRect(
+        0,0,width,height
     );
 
-    gradient.addColorStop(0, "#4bbcff");
-    gradient.addColorStop(0.55, "#b8edff");
-    gradient.addColorStop(1, "#70d46a");
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, W, H);
-
-    /* Sun */
-
-    ctx.fillStyle = "#fff3a0";
+    ctx.fillStyle="#fff3a0";
 
     ctx.beginPath();
+
     ctx.arc(
-        W * 0.78,
-        H * 0.18,
-        Math.min(W, H) * 0.07,
+        width*.78,
+        height*.18,
+        Math.min(width,height)*.07,
         0,
-        Math.PI * 2
+        Math.PI*2
     );
 
     ctx.fill();
 
-    /* Clouds */
-
-    drawCloud(W * 0.2, H * 0.18, 1);
-    drawCloud(W * 0.55, H * 0.12, 0.7);
-    drawCloud(W * 0.85, H * 0.3, 0.8);
+    cloud(width*.2,height*.18,1);
+    cloud(width*.55,height*.12,.7);
+    cloud(width*.85,height*.3,.8);
 }
 
-function drawCloud(x, y, scale) {
+function cloud(x,y,s){
 
-    ctx.fillStyle = "rgba(255,255,255,.9)";
+    ctx.fillStyle="rgba(255,255,255,.9)";
 
     ctx.beginPath();
 
-    ctx.arc(x, y, 25 * scale, 0, Math.PI * 2);
-    ctx.arc(x + 30 * scale, y - 10 * scale, 35 * scale, 0, Math.PI * 2);
-    ctx.arc(x + 70 * scale, y, 25 * scale, 0, Math.PI * 2);
+    ctx.arc(x,y,25*s,0,Math.PI*2);
+    ctx.arc(x+30*s,y-10*s,35*s,0,Math.PI*2);
+    ctx.arc(x+70*s,y,25*s,0,Math.PI*2);
 
     ctx.fill();
 }
 
-/* ---------------------------------------------------------
-   Track rendering
---------------------------------------------------------- */
+function landscape(){
 
-function drawTrack() {
+    const horizon=height*.43;
 
-    const horizon = H * 0.43;
-
-    /* Grass */
-
-    ctx.fillStyle = "#55bd4f";
+    ctx.fillStyle="#55bd4f";
 
     ctx.fillRect(
         0,
         horizon,
-        W,
-        H - horizon
+        width,
+        height-horizon
     );
 
-    const drawDistance = 70;
+    for(let i=35;i>0;i--){
 
-    let cameraX = 0;
+        const z=
+            vehicle.z+i*180;
 
-    for (let i = drawDistance; i > 0; i--) {
+        const part=
+            segment(z);
 
-        const z =
-            player.z +
-            i * 180;
+        const depth=
+            1-i/35;
 
-        const segment =
-            getTrackSegment(z);
+        const y=
+            horizon+
+            Math.pow(depth,2)*height*.57;
 
-        const depth =
-            1 - i / drawDistance;
-
-        const roadY =
-            horizon +
-            Math.pow(depth, 2) * H * 0.57;
-
-        const roadWidth =
+        const road=
             lerp(
-                W * 0.035,
-                W * 0.9,
+                width*.035,
+                width*.9,
                 depth
             );
 
-        const curve =
-            segment.curve;
+        const bend=
+            part.bend*i*.006;
 
-        cameraX += curve * 0.003;
+        const center=
+            width/2+
+            bend*width*depth;
 
-        const center =
-            W / 2 +
-            cameraX * W * depth;
-
-        /* Road */
-
-        ctx.fillStyle =
-            (i % 2 === 0)
-                ? "#555"
-                : "#5d5d5d";
+        ctx.fillStyle=
+            i%2===0
+                ?"#555"
+                :"#5d5d5d";
 
         ctx.beginPath();
 
         ctx.moveTo(
-            center - roadWidth / 2,
-            roadY
+            center-road/2,
+            y
         );
 
         ctx.lineTo(
-            center + roadWidth / 2,
-            roadY
+            center+road/2,
+            y
         );
 
         ctx.lineTo(
-            center + roadWidth * 0.51,
-            roadY + 18
+            center+road*.51,
+            y+18
         );
 
         ctx.lineTo(
-            center - roadWidth * 0.51,
-            roadY + 18
+            center-road*.51,
+            y+18
         );
 
         ctx.closePath();
 
         ctx.fill();
 
-        /* Red/white curbs */
+        const edge=
+            Math.max(
+                4,
+                road*.035
+            );
 
-        const curbWidth =
-            Math.max(4, roadWidth * 0.035);
-
-        ctx.fillStyle =
-            (Math.floor(i / 2) % 2 === 0)
-                ? "#ffffff"
-                : "#e93636";
+        ctx.fillStyle=
+            Math.floor(i/2)%2===0
+                ?"#fff"
+                :"#e93636";
 
         ctx.fillRect(
-            center - roadWidth / 2 - curbWidth,
-            roadY,
-            curbWidth,
+            center-road/2-edge,
+            y,
+            edge,
             18
         );
 
         ctx.fillRect(
-            center + roadWidth / 2,
-            roadY,
-            curbWidth,
+            center+road/2,
+            y,
+            edge,
             18
         );
 
-        /* Road centre markings */
+        if(i%6===0){
 
-        if (i % 6 === 0) {
-
-            ctx.fillStyle = "#fff";
+            ctx.fillStyle="#fff";
 
             ctx.fillRect(
-                center - Math.max(1, roadWidth * 0.008),
-                roadY,
-                Math.max(2, roadWidth * 0.016),
-                Math.max(2, roadWidth * 0.04)
+                center-road*.008,
+                y,
+                Math.max(2,road*.016),
+                Math.max(2,road*.04)
             );
         }
     }
 }
 
-/* ---------------------------------------------------------
-   Draw trees
---------------------------------------------------------- */
+function scenery(){
 
-function drawTrees() {
+    for(let i=0;i<35;i++){
 
-    for (let i = 0; i < 35; i++) {
-
-        const z =
-            player.z +
-            i * 750 +
+        const z=
+            vehicle.z+
+            i*750+
             500;
 
-        const distance =
-            ((z - player.z + trackLength) %
-                trackLength);
+        const distance=
+            wrap(z-vehicle.z);
 
-        if (distance > 10000) continue;
+        if(distance>10000)continue;
 
-        const depth =
-            1 - distance / 10000;
+        const depth=
+            1-distance/10000;
 
-        const segment =
-            getTrackSegment(z);
+        const part=segment(z);
 
-        const curve =
-            segment.curve * distance * 0.002;
+        const bend=
+            part.bend*
+            distance*
+            .002;
 
-        const roadCenter =
-            W / 2 + curve * W;
+        const center=
+            width/2+bend*width;
 
-        const side =
-            i % 2 === 0 ? -1 : 1;
+        const side=
+            i%2===0?-1:1;
 
-        const x =
-            roadCenter +
-            side *
-            (W * (0.25 + depth * 0.35));
+        const x=
+            center+
+            side*
+            (width*(.25+depth*.35));
 
-        const y =
-            H * 0.43 +
-            depth * H * 0.5;
+        const y=
+            height*.43+
+            depth*height*.5;
 
-        const size =
-            10 + depth * 55;
+        const size=
+            10+depth*55;
 
-        /* Trunk */
-
-        ctx.fillStyle = "#70421e";
+        ctx.fillStyle="#70421e";
 
         ctx.fillRect(
-            x - size * .1,
-            y - size * .55,
-            size * .2,
-            size * .6
+            x-size*.1,
+            y-size*.55,
+            size*.2,
+            size*.6
         );
 
-        /* Leaves */
-
-        ctx.fillStyle =
-            i % 3 === 0
-                ? "#218c3a"
-                : "#2eaa45";
+        ctx.fillStyle=
+            i%3===0
+                ?"#218c3a"
+                :"#2eaa45";
 
         ctx.beginPath();
 
         ctx.arc(
             x,
-            y - size * .65,
-            size * .45,
+            y-size*.65,
+            size*.45,
             0,
-            Math.PI * 2
+            Math.PI*2
         );
 
         ctx.fill();
     }
 }
 
-/* ---------------------------------------------------------
-   Draw item boxes
---------------------------------------------------------- */
+function objectsDraw(){
 
-function drawItems() {
+    for(const object of objects){
 
-    for (const item of items) {
+        if(object.used)continue;
 
-        if (item.collected) continue;
+        const distance=
+            wrap(object.z-vehicle.z);
 
-        const distance =
-            wrapZ(item.z - player.z);
+        if(distance>6000)continue;
 
-        if (distance > 6000) continue;
+        const depth=
+            1-distance/6000;
 
-        const depth =
-            1 - distance / 6000;
+        if(depth<=0)continue;
 
-        if (depth <= 0) continue;
+        const part=segment(object.z);
 
-        const segment =
-            getTrackSegment(item.z);
+        const bend=
+            part.bend*
+            distance*
+            .002;
 
-        const curve =
-            segment.curve * distance * 0.002;
+        const center=
+            width/2+bend*width;
 
-        const center =
-            W / 2 + curve * W;
-
-        const roadWidth =
+        const road=
             lerp(
-                W * .05,
-                W * .8,
+                width*.05,
+                width*.8,
                 depth
             );
 
-        const x =
-            center +
-            item.x * roadWidth;
+        const x=
+            center+
+            object.x*road;
 
-        const y =
-            H * .43 +
-            Math.pow(depth, 2) * H * .54;
+        const y=
+            height*.43+
+            Math.pow(depth,2)*height*.54;
 
-        const size =
-            10 + depth * 35;
+        const size=
+            10+depth*35;
 
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle="#fff";
 
         ctx.fillRect(
-            x - size / 2,
-            y - size,
+            x-size/2,
+            y-size,
             size,
             size
         );
 
-        ctx.fillStyle =
-            item.type === "⚡"
-                ? "#36c7ff"
-                : "#ffe600";
+        ctx.fillStyle=
+            object.type==="⚡"
+                ?"#36c7ff"
+                :"#ffe600";
 
-        ctx.font =
-            `${size * 0.75}px Arial`;
+        ctx.font=
+            `${size*.75}px Arial`;
 
-        ctx.textAlign = "center";
+        ctx.textAlign="center";
 
         ctx.fillText(
-            item.type,
+            object.type,
             x,
-            y - size * .2
+            y-size*.2
         );
     }
 }
 
-/* ---------------------------------------------------------
-   Draw AI racers
---------------------------------------------------------- */
+function otherVehicles(){
 
-function drawAI() {
+    for(const other of vehicles){
 
-    for (const racer of racers) {
+        let distance=
+            wrap(other.z-vehicle.z);
 
-        let distance =
-            wrapZ(racer.z - player.z);
-
-        if (distance > trackLength / 2) {
-            distance -= trackLength;
+        if(distance>length/2){
+            distance-=length;
         }
 
-        if (distance < 80 || distance > 6000) {
+        if(distance<80||distance>6000){
             continue;
         }
 
-        const depth =
-            1 - distance / 6000;
+        const depth=
+            1-distance/6000;
 
-        if (depth <= 0) continue;
+        if(depth<=0)continue;
 
-        const segment =
-            getTrackSegment(racer.z);
+        const part=segment(other.z);
 
-        const curve =
-            segment.curve * distance * 0.002;
+        const bend=
+            part.bend*
+            distance*
+            .002;
 
-        const center =
-            W / 2 + curve * W;
+        const center=
+            width/2+bend*width;
 
-        const roadWidth =
+        const road=
             lerp(
-                W * .05,
-                W * .8,
+                width*.05,
+                width*.8,
                 depth
             );
 
-        const x =
-            center +
-            racer.x * roadWidth;
+        const x=
+            center+
+            other.x*road;
 
-        const y =
-            H * .43 +
-            Math.pow(depth, 2) * H * .54;
+        const y=
+            height*.43+
+            Math.pow(depth,2)*height*.54;
 
-        drawKart(
+        drawVehicle(
             x,
             y,
-            15 + depth * 50,
-            racer.color
+            15+depth*50,
+            other.shade
         );
     }
 }
 
-/* ---------------------------------------------------------
-   Draw player's kart
---------------------------------------------------------- */
+function ownVehicle(){
 
-function drawPlayer() {
-
-    drawKart(
-        W / 2 + player.x * W * .15,
-        H * .82,
+    drawVehicle(
+        width/2+
+        vehicle.x*
+        width*.15,
+        height*.82,
         65,
         "#ff3030"
     );
 
-    /* Boost flames */
+    if(vehicle.boost>0){
 
-    if (player.boost > 0) {
-
-        ctx.fillStyle = "#ffd000";
+        ctx.fillStyle="#ffd000";
 
         ctx.beginPath();
 
-        ctx.moveTo(W / 2 - 15, H * .91);
-        ctx.lineTo(W / 2, H * .99);
-        ctx.lineTo(W / 2 + 15, H * .91);
+        ctx.moveTo(
+            width/2-15,
+            height*.91
+        );
+
+        ctx.lineTo(
+            width/2,
+            height*.99
+        );
+
+        ctx.lineTo(
+            width/2+15,
+            height*.91
+        );
 
         ctx.fill();
     }
 }
 
-/* ---------------------------------------------------------
-   Generic kart drawing
---------------------------------------------------------- */
+function drawVehicle(x,y,size,shade){
 
-function drawKart(x, y, size, color) {
+    const w=size;
+    const h=size*.65;
 
-    const w = size;
-    const h = size * .65;
-
-    /* Shadow */
-
-    ctx.fillStyle = "rgba(0,0,0,.3)";
+    ctx.fillStyle="rgba(0,0,0,.3)";
 
     ctx.beginPath();
 
     ctx.ellipse(
         x,
-        y + h * .3,
-        w * .7,
-        h * .25,
+        y+h*.3,
+        w*.7,
+        h*.25,
         0,
         0,
-        Math.PI * 2
+        Math.PI*2
     );
 
     ctx.fill();
 
-    /* Wheels */
-
-    ctx.fillStyle = "#171717";
+    ctx.fillStyle="#171717";
 
     ctx.fillRect(
-        x - w * .55,
-        y - h * .1,
-        w * .18,
-        h * .65
+        x-w*.55,
+        y-h*.1,
+        w*.18,
+        h*.65
     );
 
     ctx.fillRect(
-        x + w * .37,
-        y - h * .1,
-        w * .18,
-        h * .65
+        x+w*.37,
+        y-h*.1,
+        w*.18,
+        h*.65
     );
 
-    /* Kart body */
-
-    ctx.fillStyle = color;
+    ctx.fillStyle=shade;
 
     ctx.beginPath();
 
     ctx.roundRect(
-        x - w / 2,
-        y - h / 2,
+        x-w/2,
+        y-h/2,
         w,
         h,
-        h * .2
+        h*.2
     );
 
     ctx.fill();
 
-    /* Front bumper */
-
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle="#fff";
 
     ctx.fillRect(
-        x - w * .38,
-        y - h * .2,
-        w * .76,
-        h * .12
+        x-w*.38,
+        y-h*.2,
+        w*.76,
+        h*.12
     );
 
-    /* Driver */
-
-    ctx.fillStyle = "#ffd0a0";
+    ctx.fillStyle="#ffd0a0";
 
     ctx.beginPath();
 
     ctx.arc(
         x,
-        y - h * .65,
-        h * .32,
+        y-h*.65,
+        h*.32,
         0,
-        Math.PI * 2
+        Math.PI*2
     );
 
     ctx.fill();
 
-    /* Helmet */
-
-    ctx.fillStyle = color;
+    ctx.fillStyle=shade;
 
     ctx.beginPath();
 
     ctx.arc(
         x,
-        y - h * .72,
-        h * .34,
+        y-h*.72,
+        h*.34,
         Math.PI,
-        Math.PI * 2
+        Math.PI*2
     );
 
     ctx.fill();
 }
 
-/* ---------------------------------------------------------
-   Boost pad rendering
---------------------------------------------------------- */
+function stripsDraw(){
 
-function drawBoosts() {
+    for(const strip of strips){
 
-    for (const boost of boosts) {
+        const distance=
+            wrap(strip.z-vehicle.z);
 
-        const distance =
-            wrapZ(boost.z - player.z);
+        if(distance>5000)continue;
 
-        if (distance > 5000) continue;
+        const depth=
+            1-distance/5000;
 
-        const depth =
-            1 - distance / 5000;
+        const part=segment(strip.z);
 
-        const segment =
-            getTrackSegment(boost.z);
+        const bend=
+            part.bend*
+            distance*
+            .002;
 
-        const curve =
-            segment.curve * distance * 0.002;
+        const center=
+            width/2+bend*width;
 
-        const center =
-            W / 2 + curve * W;
-
-        const width =
+        const road=
             lerp(
-                W * .04,
-                W * .7,
+                width*.04,
+                width*.7,
                 depth
             );
 
-        const y =
-            H * .43 +
-            Math.pow(depth, 2) * H * .54;
+        const y=
+            height*.43+
+            Math.pow(depth,2)*height*.54;
 
-        ctx.fillStyle = "#00d9ff";
+        ctx.fillStyle="#00d9ff";
 
         ctx.beginPath();
 
         ctx.moveTo(
-            center - width * .2,
+            center-road*.2,
             y
         );
 
         ctx.lineTo(
-            center + width * .2,
+            center+road*.2,
             y
         );
 
         ctx.lineTo(
-            center + width * .27,
-            y + 10
+            center+road*.27,
+            y+10
         );
 
         ctx.lineTo(
-            center - width * .27,
-            y + 10
+            center-road*.27,
+            y+10
         );
 
         ctx.closePath();
 
         ctx.fill();
 
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle="#fff";
 
-        ctx.font =
-            `${Math.max(8, width * .12)}px Arial`;
+        ctx.font=
+            `${Math.max(8,road*.12)}px Arial`;
 
-        ctx.textAlign = "center";
+        ctx.textAlign="center";
 
         ctx.fillText(
             "⚡",
             center,
-            y + 8
+            y+8
         );
     }
 }
 
-/* ---------------------------------------------------------
-   Countdown
---------------------------------------------------------- */
+function countdown(){
 
-function drawCountdown() {
+    if(count<=0)return;
 
-    if (countdown <= 0) return;
-
-    ctx.fillStyle = "rgba(0,0,0,.25)";
+    ctx.fillStyle="rgba(0,0,0,.25)";
 
     ctx.fillRect(
         0,
         0,
-        W,
-        H
+        width,
+        height
     );
 
-    ctx.fillStyle =
-        countdown === 1
-            ? "#38ff4b"
-            : "#fff";
+    ctx.fillStyle=
+        count===1
+            ?"#38ff4b"
+            :"#fff";
 
-    ctx.font =
-        `bold ${Math.min(W, H) * .2}px Arial`;
+    ctx.font=
+        `bold ${Math.min(width,height)*.2}px Arial`;
 
-    ctx.textAlign = "center";
+    ctx.textAlign="center";
 
     ctx.fillText(
-        countdown,
-        W / 2,
-        H / 2
+        count,
+        width/2,
+        height/2
     );
 }
 
-/* ---------------------------------------------------------
-   Main update
---------------------------------------------------------- */
+function update(){
 
-function update() {
+    if(!active||finished)return;
 
-    if (!gameStarted || gameOver) return;
+    if(count>0)return;
 
-    if (countdown > 0) return;
+    updateVehicle();
+    updateVehicles();
+    updateRank();
 
-    updatePlayer();
-    updateAI();
-    calculatePosition();
+    document.getElementById("round").textContent=
+        `${Math.min(vehicle.round,rounds)} / ${rounds}`;
 
-    document.getElementById("lap").textContent =
-        `Lap ${Math.min(player.lap, TOTAL_LAPS)} / ${TOTAL_LAPS}`;
-
-    document.getElementById("speed").textContent =
-        `Speed: ${Math.round(player.speed * 180)} km/h`;
+    document.getElementById("velocity").textContent=
+        `${Math.round(vehicle.velocity*180)} km/h`;
 }
 
-/* ---------------------------------------------------------
-   Main rendering
---------------------------------------------------------- */
+function render(){
 
-function render() {
-
-    drawSky();
-    drawTrack();
-    drawTrees();
-    drawBoosts();
-    drawItems();
-    drawAI();
-    drawPlayer();
-    drawCountdown();
-
-    if (!gameStarted) {
-        requestAnimationFrame(render);
-        return;
-    }
+    sky();
+    landscape();
+    scenery();
+    stripsDraw();
+    objectsDraw();
+    otherVehicles();
+    ownVehicle();
+    countdown();
 
     requestAnimationFrame(render);
 }
 
-/* ---------------------------------------------------------
-   Game loop
---------------------------------------------------------- */
-
-function gameLoop() {
+function loop(){
     update();
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(loop);
 }
 
 render();
-gameLoop();
+loop();
 
 </script>
 
 </body>
 </html>
+```
