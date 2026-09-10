@@ -185,24 +185,24 @@
     // ==========================================
     // 👇 PART 3 BEGINS DIRECTLY BELOW THIS LINE 👇
     // ==========================================
-    // Procedural Floor generation script building interconnected layout spaces 
+    // PROCEDURAL MAP GENERATOR: Fixes the bug by explicitly loading rooms into matrix coordinates
     function generateFloor() {
-        // Build an empty 5x5 grid container map slot tracking area spaces
+        // 1. Build a clean 5x5 empty layout grid matrix space
         roomGrid = [];
         for (let y = 0; y < 5; y++) {
             roomGrid.push([null, null, null, null, null]);
         }
 
-        // FIXED: Assign rooms directly to specific grid index coordinates instead of overriding the grid array
+        // 2. Load rooms firmly into explicit grid positions to avoid breaking the grid map array
         roomGrid[2][2] = createRoom("Start");
-        roomGrid[2][2].cleared = true; // Starting room begins cleared
+        roomGrid[2][2].cleared = true; // Start room is always instantly safe
 
-        roomGrid[1][2] = createRoom("Monster"); // Top room
-        roomGrid[3][2] = createRoom("Monster"); // Bottom room
-        roomGrid[2][1] = createRoom("Item");    // Left room
-        roomGrid[2][3] = createRoom("Boss");    // Right room
+        roomGrid[1][2] = createRoom("Monster"); // Top Room
+        roomGrid[3][2] = createRoom("Monster"); // Bottom Room
+        roomGrid[2][1] = createRoom("Item");    // Left Room
+        roomGrid[2][3] = createRoom("Boss");    // Right Room
 
-        // Establish directional entry doorway pathways between interconnected nodes
+        // 3. Open directional doorway navigation arches between active connected coordinates
         for (let y = 0; y < 5; y++) {
             for (let x = 0; x < 5; x++) {
                 if (roomGrid[y][x]) {
@@ -222,23 +222,23 @@
             enemies: [], pedestals: [], trapdoors: []
         };
 
-        // Inject elements vectors depending on mapped conditions profiles
+        // Populate entities depending on room objective profile constraints
         if (type === "Monster") {
             let count = 2 + Math.floor(floorNumber * 0.5);
             for (let i = 0; i < count; i++) {
                 rm.enemies.push({
-                    x: 100 + Math.random() * (canvas.width - 200),
-                    y: 100 + Math.random() * (canvas.height - 200),
-                    hp: 8 + (floorNumber * 2), maxHp: 8 + (floorNumber * 2),
-                    r: 12, speed: 1.2 + (Math.random() * 0.5), type: "Fly",
+                    x: 120 + Math.random() * (canvas.width - 240),
+                    y: 120 + Math.random() * (canvas.height - 240),
+                    hp: 6 + (floorNumber * 2), maxHp: 6 + (floorNumber * 2),
+                    r: 12, speed: 1.2 + (Math.random() * 0.4), type: "Fly",
                     color: "#cc3333"
                 });
             }
         } else if (type === "Boss") {
             rm.enemies.push({
                 x: canvas.width / 2, y: canvas.height / 2,
-                hp: 40 + (floorNumber * 20), maxHp: 40 + (floorNumber * 20),
-                r: 28, speed: 1.0, type: "Monstro",
+                hp: 35 + (floorNumber * 15), maxHp: 35 + (floorNumber * 15),
+                r: 26, speed: 1.0, type: "Monstro",
                 color: "#9c2e2e", isBoss: true
             });
         } else if (type === "Item") {
@@ -251,15 +251,15 @@
         return rm;
     }
 
-    // Canvas graphic render routines mapping borders & tiles structures
+    // Canvas background renderer
     function drawRoomBorders() {
-        ctx.fillStyle = "#382e2e"; // Wall frame thickness background block layers
+        ctx.fillStyle = "#382e2e"; // Perimeter Wall block thickness
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        ctx.fillStyle = "#544646"; // Inner floor dimensions profile fields
+        ctx.fillStyle = "#544646"; // Open floor field
         ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-        // Core grid accent tile overlay patterns
+        // Core grid layout tile accent lines
         ctx.strokeStyle = "#403535";
         ctx.lineWidth = 2;
         for (let col = 1; col < 8; col++) {
@@ -276,49 +276,49 @@
         }
     }
 
-    // Render functional door threshold archways on layout perimeters
+    // Draw entryway threshold boxes matching open cross coordinates
     function drawDoors(rm) {
         ctx.fillStyle = "#1c1616";
-        // Top Door
         if (rm.doors.top) ctx.fillRect(canvas.width / 2 - 25, 20, 50, 20);
-        // Bottom Door
         if (rm.doors.bottom) ctx.fillRect(canvas.width / 2 - 25, canvas.height - 40, 50, 20);
-        // Left Door
         if (rm.doors.left) ctx.fillRect(20, canvas.height / 2 - 25, 20, 50);
-        // Right Door
         if (rm.doors.right) ctx.fillRect(canvas.width - 40, canvas.height / 2 - 25, 20, 50);
     }
 
-    // Doorway transition threshold navigation mechanics
+    // FIXED DOOR STEP-THROUGH ROUTING LAYER
     function checkDoorTransitions() {
         let rm = roomGrid[currentRoomY][currentRoomX];
-        if (!rm.cleared) return; // Keep player locked inside active combat rooms
+        if (!rm || !rm.cleared) return; // Keep player locked out of transitions if monsters are alive
 
-        // Top door step-through zone
+        // Top door hit threshold
         if (rm.doors.top && player.y < 45 && Math.abs(player.x - canvas.width / 2) < 25) {
             currentRoomY--;
-            player.y = canvas.height - 70;
+            player.y = canvas.height - 75;
             tears = [];
         }
-        // Bottom door step-through zone
+        // Bottom door hit threshold
         else if (rm.doors.bottom && player.y > canvas.height - 45 && Math.abs(player.x - canvas.width / 2) < 25) {
             currentRoomY++;
-            player.y = 70;
+            player.y = 75;
             tears = [];
         }
-        // Left door step-through zone
+        // Left door hit threshold
         else if (rm.doors.left && player.x < 45 && Math.abs(player.y - canvas.height / 2) < 25) {
             currentRoomX--;
-            player.x = canvas.width - 70;
+            player.x = canvas.width - 75;
             tears = [];
         }
-        // Right door step-through zone
+        // Right door hit threshold
         else if (rm.doors.right && player.x > canvas.width - 45 && Math.abs(player.y - canvas.height / 2) < 25) {
             currentRoomX++;
-            player.x = 70;
+            player.x = 75;
             tears = [];
         }
     }
+
+    // ==========================================
+    // 👇 PART 4 BEGINS DIRECTLY BELOW THIS LINE 👇
+    // ==========================================
 
     // ==========================================
     // 👇 PART 4 BEGINS DIRECTLY BELOW THIS LINE 👇
