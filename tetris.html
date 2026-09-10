@@ -228,8 +228,7 @@
 
     // ==========================================
     // 👇 PART 3 BEGINS DIRECTLY BELOW THIS LINE 👇
-    // ==========================================
-function merge(arena, player) {
+    function merge(arena, player) {
         player.matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
@@ -239,7 +238,7 @@ function merge(arena, player) {
         });
     }
 
-    // Scans completed rows, awards points, and updates speed scaling tiers
+    // FIXED: Correctly clears rows as standalone 12-column arrays to prevent line-clear game overs
     function arenaSweep() {
         let rowCount = 1;
         outer: for (let y = arena.length - 1; y > 0; --y) {
@@ -248,7 +247,8 @@ function merge(arena, player) {
                     continue outer;
                 }
             }
-            const row = arena.splice(y, 1).fill(0);
+            // Fix: Access index [0] of the spliced row array before resetting its contents
+            const row = arena.splice(y, 1)[0].fill(0);
             arena.unshift(row);
             ++y;
 
@@ -280,7 +280,7 @@ function merge(arena, player) {
                     const boardX = x + o.x;
                     const boardY = y + o.y;
                     
-                    // Fixed: Strictly catches sidebar limits and stack collision flags
+                    // Strictly catches sidebar limits and stack collision flags
                     if (boardX < 0 || boardX >= 12 || boardY >= 20) {
                         return true;
                     }
