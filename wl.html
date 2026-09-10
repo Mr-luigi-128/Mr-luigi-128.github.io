@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spectrum - Wavelength Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            color: #333;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .game-container {
+            background: #fff;
+            padding: 30px;
+            border: 2px solid #333;
+            box-shadow: 5px 5px 0px #888;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            background: #eee;
+            border: 2px solid #333;
+            padding: 10px;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .team-score {
+            font-size: 1.2rem;
+        }
+
+        .prompt-container {
+            border: 2px solid #333;
+            padding: 20px;
+            background: #fafafa;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .spectrum-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .left-label { color: #ff3300; text-transform: uppercase; }
+        .right-label { color: #0055ff; text-transform: uppercase; }
+
+        .wheel-area {
+            position: relative;
+            height: 120px;
+            background: #222;
+            border: 4px solid #333;
+            margin-bottom: 25px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .target-zone {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(255,170,0,0.4) 0%, 
+                rgba(255,230,0,0.8) 30%, 
+                rgba(0,255,0,1) 50%, 
+                rgba(255,230,0,0.8) 70%, 
+                rgba(255,170,0,0.4) 100%);
+            width: 16%;
+            display: none;
+            pointer-events: none;
+            border-left: 2px solid #fff;
+            border-right: 2px solid #fff;
+        }
+
+        .guess-slider {
+            -webkit-appearance: none;
+            width: 90%;
+            margin: 0 auto;
+            background: transparent;
+            position: relative;
+            z-index: 5;
+        }
+
+        .guess-slider:focus {
+            outline: none;
+        }
+
+        .guess-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: #555;
+            border-radius: 4px;
+        }
+
+        .guess-slider::-webkit-slider-thumb {
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #333;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -10px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .btn {
+            background-color: #333;
+            color: #fff;
+            border: 2px solid #333;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #eee;
+            color: #333;
+        }
+
+        .btn-secondary {
+            background-color: #888;
+            border-color: #888;
+        }
+
+        .instructions {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 15px;
+            line-height: 1.4;
+        }
+
+        .hidden { display: none !important; }
+
+        .points-alert {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #00aa00;
+            margin-top: 15px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>SPECTRUM</h1>
+
+    <div class="game-container">
+        <!-- Scoreboard Setup -->
+        <div class="score-board">
+            <div class="team-score" style="color: #ff3300;">Team A: <span id="scoreA">0</span></div>
+            <div class="team-score" style="color: #0055ff;">Team B: <span id="scoreB">0</span></div>
+            <div id="turnIndicator" style="font-size: 0.9rem; align-self: center;">Current Turn: <strong>Team A</strong></div>
+        </div>
+
+        <!-- Dynamic Spectrum Prompt Window -->
+        <div class="prompt-container">
+            <div style="font-size: 0.8rem; color: #777; text-transform: uppercase; letter-spacing: 1px;">The Spectrum Axis</div>
+            <div class="spectrum-labels">
+                <span id="leftLabel" class="left-label">Bad</span>
+                <span id="rightLabel" class="right-label">Good</span>
+            </div>
+        </div>
+
+        <!-- The Spectrum Wheel Visual Field -->
+        <div class="wheel-area">
+            <div id="targetZone" class="target-zone"></div>
+            <input type="range" id="guessSlider" class="guess-slider" min="0" max="100" value="50">
+        </div>
+
+        <!-- Controls Dashboard Menu Buttons -->
+        <div class="controls-area">
+            <button id="psychicBtn" class="btn">Psychic: View Target</button>
+            <button id="hideTargetBtn" class="btn btn-secondary hidden">Hide Target & Give to Team</button>
+            <button id="revealBtn" class="btn hidden">Team: Lock Guess & Reveal</button>
+            <button id="nextTurnBtn" class="btn hidden">Next Turn</button>
+        </div>
+
+        <div id="feedback" class="points-alert hidden"></div>
+        <p id="instructionText" class="instructions"><strong>Psychic's Turn:</strong> Click "View Target" secretly, think of a clue that maps to that spot on the spectrum, tell your team, then hide it!</p>
+    </div>
+
+    <a href="./index.html" class="back-btn">Return to Hub Menu</a>
+
+    <!-- ========================================== -->
+    <!-- 👇 PART 2 BEGINS DIRECTLY BELOW THIS LINE 👇 -->
+    <!-- ========================================== -->
+<script>
+    // Traditional prompt card data array matching standard spectrums
+    const prompts = [
+        { left: "Bad", right: "Good" },
+        { left: "Cold", right: "Hot" },
+        { left: "Useless", right: "Useful" },
+        { left: "Low-tech", right: "High-tech" },
+        { left: "Soft", right: "Hard" },
+        { left: "Boring", right: "Exciting" },
+        { left: "Cheap", right: "Expensive" },
+        { left: "Unhealthy", right: "Healthy" },
+        { left: "Historical Event", right: "Movie Plot" },
+        { left: "Guilty Pleasure", right: "Actually Masterpiece" },
+        { left: "Normal Thing", right: "Weird Thing" },
+        { left: "Underrated", right: "Overrated" },
+        { left: "Villain", right: "Hero" },
+        { left: "Sad Song", right: "Happy Song" }
+    ];
+
+    // State engine variables
+    let scoreA = 0;
+    let scoreB = 0;
+    let currentTeam = 'A';
+    let targetValue = 0; // Value between 8 and 92 to stay fully within boundaries
+    let currentPrompt = {};
+
+    // Element hooks
+    const leftLabelEl = document.getElementById('leftLabel');
+    const rightLabelEl = document.getElementById('rightLabel');
+    const targetZoneEl = document.getElementById('targetZone');
+    const guessSliderEl = document.getElementById('guessSlider');
+    const turnIndicatorEl = document.getElementById('turnIndicator');
+    const instructionTextEl = document.getElementById('instructionText');
+    const feedbackEl = document.getElementById('feedback');
+
+    const psychicBtn = document.getElementById('psychicBtn');
+    const hideTargetBtn = document.getElementById('hideTargetBtn');
+    const revealBtn = document.getElementById('revealBtn');
+    const nextTurnBtn = document.getElementById('nextTurnBtn');
+
+    function initRound() {
+        // Roll random spectrum matrix items
+        currentPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+        leftLabelEl.innerText = currentPrompt.left;
+        rightLabelEl.innerText = currentPrompt.right;
+
+        // Roll target value center point (8-92 keeps target visualization box safe on edges)
+        targetValue = Math.floor(Math.random() * 84) + 8;
+        
+        // Hide target visually and lock guessing operations
+        targetZoneEl.style.display = 'none';
+        targetZoneEl.style.left = `${targetValue - 8}%`; // Center the 16% wide block
+        
+        guessSliderEl.value = 50;
+        guessSliderEl.disabled = true; // Lock slider during psychic layout observation step
+
+        // Menu visibility resets
+        psychicBtn.classList.remove('hidden');
+        hideTargetBtn.classList.add('hidden');
+        revealBtn.classList.add('hidden');
+        nextTurnBtn.classList.add('hidden');
+        feedbackEl.classList.add('hidden');
+
+        turnIndicatorEl.innerHTML = `Current Turn: <strong style="color: ${currentTeam === 'A' ? '#ff3300' : '#0055ff'};">Team ${currentTeam}</strong>`;
+        instructionTextEl.innerHTML = `<strong>Psychic's Turn:</strong> Click "View Target" secretly, think of a clue that maps to that spot on the spectrum, tell your team, then hide it!`;
+    }
+
+    // Step 1: Psychic reveals layout secretly
+    psychicBtn.addEventListener('click', () => {
+        targetZoneEl.style.display = 'block';
+        guessSliderEl.value = targetValue; // Snap slider directly to help psychic visualize target location
+        
+        psychicBtn.classList.add('hidden');
+        hideTargetBtn.classList.remove('hidden');
+        instructionTextEl.innerHTML = `<strong>Psychic note:</strong> The target is at <strong>${targetValue}%</strong>. Think of your hint concept, state it out loud, then click "Hide Target & Give to Team".`;
+    });
+
+    // Step 2: Hide target zone and unlock slider controls for team discussion phase
+    hideTargetBtn.addEventListener('click', () => {
+        targetZoneEl.style.display = 'none';
+        guessSliderEl.value = 50; // Reset thumb to middle center position for team guess step
+        guessSliderEl.disabled = false; // Allow dragging manipulation
+
+        hideTargetBtn.classList.add('hidden');
+        revealBtn.classList.remove('hidden');
+        instructionTextEl.innerHTML = `<strong>Team's Turn:</strong> Talk together based on the psychic's clue. Drag the slider knob to where you think the concept points on the scale, then click "Lock Guess & Reveal".`;
+    });
+
+    // Step 3: Evaluate scoring based on standard proximity distances
+    revealBtn.addEventListener('click', () => {
+        guessSliderEl.disabled = true;
+        const finalGuess = parseInt(guessSliderEl.value);
+        targetZoneEl.style.display = 'block'; // Show hidden spectrum zone target marker slice array items
+
+        // Proximity tier score math engine configurations
+        const absoluteDistance = Math.abs(finalGuess - targetValue);
+        let pointsEarned = 0;
+
+        if (absoluteDistance <= 2) {
+            pointsEarned = 4; // Perfect bulls-eye center strike
+        } else if (absoluteDistance <= 5) {
+            pointsEarned = 3; // Tight close layout ring strike
+        } else if (absoluteDistance <= 10) {
+            pointsEarned = 2; // Mid proximity buffer hit
+        }
+
+        // Apply scores to respective team structures
+        if (currentTeam === 'A') {
+            scoreA += pointsEarned;
+            document.getElementById('scoreA').innerText = scoreA;
+        } else {
+            scoreB += pointsEarned;
+            document.getElementById('scoreB').innerText = scoreB;
+        }
+
+        // Display points alerts layout elements
+        feedbackEl.classList.remove('hidden');
+        if (pointsEarned > 0) {
+            feedbackEl.style.color = '#00aa00';
+            feedbackEl.innerText = `Hit! Target was ${targetValue}%, Guess was ${finalGuess}%. Team ${currentTeam} scores +${pointsEarned} Points!`;
+        } else {
+            feedbackEl.style.color = '#ff3300';
+            feedbackEl.innerText = `Miss! Target was ${targetValue}%, Guess was ${finalGuess}%. 0 Points awarded.`;
+        }
+
+        revealBtn.classList.add('hidden');
+        nextTurnBtn.classList.remove('hidden');
+        instructionTextEl.innerHTML = `Take a look at the placement result dial details. Click "Next Turn" to toggle team iterations.`;
+    });
+
+    // Step 4: Toggle team frames loops
+    nextTurnBtn.addEventListener('click', () => {
+        currentTeam = (currentTeam === 'A') ? 'B' : 'A';
+        initRound();
+    });
+
+    // Launch initialisers on boot load parameters
+    initRound();
+</script>
+</body>
+</html>
