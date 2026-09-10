@@ -1,2 +1,1 @@
-This is a test
-tetrino
+This is a test, will be removed eventually
