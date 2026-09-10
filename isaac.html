@@ -146,7 +146,6 @@
     <!-- ========================================== -->
     <!-- 👇 PART 2 BEGINS DIRECTLY BELOW THIS LINE 👇 -->
     <!-- ========================================== -->
-<script>
     const canvas = document.getElementById('isaacCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -166,7 +165,7 @@
 
     // Core global coordinates tracker structures
     let floorNumber = 1;
-    let currentRoomX = 2; // Floor rooms map layout grid coordinates index anchors
+    let currentRoomX = 2; // Fixed map layout grid coordinates index anchors
     let currentRoomY = 2;
     let roomGrid = [];     // 5x5 Matrix space hosting the map structure grid layout
 
@@ -187,27 +186,25 @@
     // ==========================================
     // Procedural Floor generation script building interconnected layout spaces 
     function generateFloor() {
-        roomGrid = Array(5).fill(null).map(() => Array(5).fill(null));
-        
-        // Setup a temporary map grid array to load room allocations
-        let tempGrid = Array(5).fill(null).map(() => Array(5).fill(null));
+        // Build an empty 5x5 grid container map slot tracking area spaces
+        roomGrid = [];
+        for (let y = 0; y < 5; y++) {
+            roomGrid.push([null, null, null, null, null]);
+        }
 
         // Spawn root anchor starting map node directly center inside grid rows index maps
-        tempGrid[2][2] = createRoom("Start");
-        tempGrid[2][2].cleared = true; // Starting room begins cleared
+        roomGrid[2][2] = createRoom("Start");
+        roomGrid[2][2].cleared = true; // Starting room begins cleared
 
-        // Force item room and combat arena path attachments around the map perimeter
-        tempGrid[1][2] = createRoom("Item");
-        tempGrid[2][1] = createRoom("Monster");
-        tempGrid[2][3] = createRoom("Monster");
-        tempGrid[3][2] = createRoom("Boss");
-
-        // Overwrite the primary tracking array reference tightly
-        roomGrid = tempGrid;
+        // Map relative grid coordinate slots safely to branches away from the center
+        roomGrid[1][2] = createRoom("Monster"); // Top room
+        roomGrid[3][2] = createRoom("Monster"); // Bottom room
+        roomGrid[2][1] = createRoom("Item");    // Left room
+        roomGrid[2][3] = createRoom("Boss");    // Right room
 
         // Establish directional entry doorway pathways between interconnected nodes
-        for(let y = 0; y < 5; y++) {
-            for(let x = 0; x < 5; x++) {
+        for (let y = 0; y < 5; y++) {
+            for (let x = 0; x < 5; x++) {
                 if (roomGrid[y][x]) {
                     if (y > 0 && roomGrid[y-1][x]) roomGrid[y][x].doors.top = true;
                     if (y < 4 && roomGrid[y+1][x]) roomGrid[y][x].doors.bottom = true;
@@ -228,7 +225,7 @@
         // Inject elements vectors depending on mapped conditions profiles
         if (type === "Monster") {
             let count = 2 + Math.floor(floorNumber * 0.5);
-            for(let i = 0; i < count; i++) {
+            for (let i = 0; i < count; i++) {
                 rm.enemies.push({
                     x: 100 + Math.random() * (canvas.width - 200),
                     y: 100 + Math.random() * (canvas.height - 200),
@@ -265,13 +262,13 @@
         // Core grid accent tile overlay patterns
         ctx.strokeStyle = "#403535";
         ctx.lineWidth = 2;
-        for(let col = 1; col < 8; col++) {
+        for (let col = 1; col < 8; col++) {
             ctx.beginPath();
             ctx.moveTo(col * 80, 40);
             ctx.lineTo(col * 80, canvas.height - 40);
             ctx.stroke();
         }
-        for(let rw = 1; rw < 6; rw++) {
+        for (let rw = 1; rw < 6; rw++) {
             ctx.beginPath();
             ctx.moveTo(40, rw * 80);
             ctx.lineTo(canvas.width - 40, rw * 80);
@@ -292,7 +289,7 @@
         if (rm.doors.right) ctx.fillRect(canvas.width - 40, canvas.height / 2 - 25, 20, 50);
     }
 
-    // FIXED: Doorway transition threshold navigation mechanics now use static room bounds
+    // Doorway transition threshold navigation mechanics
     function checkDoorTransitions() {
         let rm = roomGrid[currentRoomY][currentRoomX];
         if (!rm.cleared) return; // Keep player locked inside active combat rooms
