@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Isaac</title>
+    <style>
+        body {
+            background-color: #1a1515;
+            color: #d9c3b0;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #9c2e2e;
+            text-shadow: 2px 2px 0px #000;
+            margin: 0 0 10px 0;
+            font-size: 2.2rem;
+            letter-spacing: 3px;
+        }
+
+        .game-wrapper {
+            display: flex;
+            gap: 20px;
+            background: #2b2222;
+            padding: 15px;
+            border: 4px solid #000;
+            box-shadow: 0px 0px 25px rgba(0,0,0,0.7);
+        }
+
+        canvas {
+            background-color: #140f0f;
+            border: 4px solid #423535;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 180px;
+            height: 480px;
+        }
+
+        .box {
+            background: #1c1616;
+            border: 2px solid #000;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .box h2 {
+            margin: 0 0 8px 0;
+            font-size: 0.9rem;
+            color: #9c2e2e;
+            text-transform: uppercase;
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin: 4px 0;
+        }
+
+        .val {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .log-box {
+            font-size: 0.75rem;
+            color: #bfa38a;
+            max-height: 100px;
+            overflow-y: hidden;
+            text-align: left;
+            line-height: 1.3;
+        }
+
+        .controls {
+            font-size: 0.75rem;
+            color: #8a7361;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .back-btn {
+            display: block;
+            margin-top: 10px;
+            background-color: #9c2e2e;
+            color: #fff;
+            text-decoration: none;
+            padding: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            border: 2px solid #000;
+        }
+
+        .back-btn:hover {
+            background-color: #eee;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>INFINITE BASEMENT</h1>
+
+    <div class="game-wrapper">
+        <!-- Main Game Viewport Layout -->
+        <canvas id="isaacCanvas" width="640" height="480"></canvas>
+
+        <!-- Sidebar Diagnostics & Inventory Log Displays -->
+        <div class="sidebar">
+            <div class="box">
+                <h2>Stats</h2>
+                <div class="stat-line">Floor: <span id="statFloor" class="val">1</span></div>
+                <div class="stat-line">Hearts: <span id="statHP" class="val">3/3</span></div>
+                <div class="stat-line">Damage: <span id="statDMG" class="val">3.5</span></div>
+                <div class="stat-line">Tear Rate: <span id="statFire" class="val">1.0</span></div>
+                <div class="stat-line">Speed: <span id="statSpeed" class="val">3</span></div>
+            </div>
+
+            <div class="box">
+                <h2>Item Log</h2>
+                <div id="itemLog" class="log-box">No items collected.</div>
+            </div>
+
+            <div class="box controls">
+                <h2>Controls</h2>
+                <div>WASD : Move Player</div>
+                <div>Arrows : Shoot Tears</div>
+                <a href="./index.html" class="back-btn">Hub Menu</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 👇 PART 2 BEGINS DIRECTLY BELOW THIS LINE 👇 -->
+    <!-- ========================================== -->
+<script>
+    const canvas = document.getElementById('isaacCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 10 Distinct Stat-Modifying Items reference dictionary pool array
+    const itemPool = [
+        { id: 1, name: "The Sad Onion", desc: "Tears up (+0.4 Tear Rate)", color: "#00ffcc", mod: (p) => p.fireRate = Math.max(200, p.fireRate - 150) },
+        { id: 2, name: "The Pact", desc: "Damage + Tears up (+1.0 DMG, +0.2 Fire Rate)", color: "#7a0099", mod: (p) => { p.damage += 1.0; p.fireRate = Math.max(200, p.fireRate - 80); } },
+        { id: 3, name: "Magic Mushroom", desc: "All stats up! (+1.5 DMG, +1 Max HP, +1 Speed)", color: "#ff3333", mod: (p) => { p.damage += 1.5; p.maxHp += 1; p.hp += 1; p.speed += 1; } },
+        { id: 4, name: "The Halo", desc: "All stats slightly up (+0.5 DMG, +50 Fire Rate, +0.5 Speed)", color: "#ffff99", mod: (p) => { p.damage += 0.5; p.fireRate = Math.max(200, p.fireRate - 50); p.speed += 0.5; } },
+        { id: 5, name: "Pentagram", desc: "Damage up (+1.5 DMG)", color: "#ff0000", mod: (p) => p.damage += 1.5 },
+        { id: 6, name: "Raw Liver", desc: "Health up (+2 Max HP fields)", color: "#994d00", mod: (p) => { p.maxHp += 2; p.hp += 2; } },
+        { id: 7, name: "Jesus Juice", desc: "Damage and range up (+1.0 DMG, +100 Tear Range)", color: "#cc0066", mod: (p) => { p.damage += 1.0; p.tearRange += 100; } },
+        { id: 8, name: "Growth Hormones", desc: "Speed + Damage up (+1.0 DMG, +1 Speed)", color: "#ff99cc", mod: (p) => { p.damage += 1.0; p.speed += 1; } },
+        { id: 9, name: "Wooden Spoon", desc: "Speed up (+1.5 Speed)", color: "#804000", mod: (p) => p.speed += 1.5 },
+        { id: 10, name: "Breakfast", desc: "Health up (+1 Max HP container)", color: "#ffffff", mod: (p) => { p.maxHp += 1; p.hp += 1; } }
+    ];
+
+    // Core global coordinates tracker structures
+    let floorNumber = 1;
+    let currentRoomX = 2; // Floor rooms map layout grid coordinates index anchors
+    let currentRoomY = 2;
+    let roomGrid = [];     // 5x5 Matrix space hosting the map structure grid layout
+
+    const player = {
+        x: canvas.width / 2, y: canvas.height / 2,
+        r: 14, speed: 3.5,
+        maxHp: 3, hp: 3,
+        damage: 3.5, fireRate: 600, // lower fireRate value = faster reload speeds frequency ticks
+        tearRange: 250, lastShot: 0
+    };
+
+    let keys = {};
+    let tears = [];
+    let particles = [];
+
+    // ==========================================
+    // 👇 PART 3 BEGINS DIRECTLY BELOW THIS LINE 👇
+    // ==========================================
+    // Procedural Floor generation script building interconnected layout spaces 
+    function generateFloor() {
+        roomGrid = Array(5).fill(null).map(() => Array(5).fill(null));
+        
+        // Spawn root anchor starting map node directly center inside grid rows index maps
+        roomGrid[2][2] = createRoom("Start");
+
+        // Force item room path attachment points boundaries
+        roomGrid[1][2] = createRoom("Item");
+        
+        // Force monster combat arenas
+        roomGrid[2][1] = createRoom("Monster");
+        roomGrid[2][3] = createRoom("Monster");
+
+        // Boss node locked at edge extremes bounds
+        roomGrid[3][2] = createRoom("Boss");
+
+        // Establish directional entry doorway pathways between interconnected nodes
+        for(let y=0; y<5; y++) {
+            for(let x=0; x<5; x++) {
+                if (roomGrid[y][x]) {
+                    if (y > 0 && roomGrid[y-1][x]) roomGrid[y][x].doors.top = true;
+                    if (y < 4 && roomGrid[y+1][x]) roomGrid[y][x].doors.bottom = true;
+                    if (x > 0 && roomGrid[y][x-1]) roomGrid[y][x].doors.left = true;
+                    if (x < 4 && roomGrid[y][x+1]) roomGrid[y][x].doors.right = true;
+                }
+            }
+        }
+    }
+
+    function createRoom(type) {
+        let rm = {
+            type: type, cleared: (type === "Start"),
+            doors: { top: false, bottom: false, left: false, right: false },
+            enemies: [], pedestals: [], trapdoors: []
+        };
+
+        // Inject elements vectors depending on mapped conditions profiles
+        if (type === "Monster") {
+            let count = 2 + Math.floor(floorNumber * 0.5);
+            for(let i=0; i<count; i++) {
+                rm.enemies.push({
+                    x: 100 + Math.random() * (canvas.width - 200),
+                    y: 100 + Math.random() * (canvas.height - 200),
+                    hp: 8 + (floorNumber * 2), maxHp: 8 + (floorNumber * 2),
+                    r: 12, speed: 1.2 + (Math.random() * 0.5), type: "Fly",
+                    color: "#cc3333"
+                });
+            }
+        } else if (type === "Boss") {
+            rm.enemies.push({
+                x: canvas.width / 2, y: canvas.height / 2,
+                hp: 40 + (floorNumber * 20), maxHp: 40 + (floorNumber * 20),
+                r: 28, speed: 1.0, type: "Monstro",
+                color: "#9c2e2e", isBoss: true
+            });
+        } else if (type === "Item") {
+            // Draw random pedestal roll
+            let itm = itemPool[Math.floor(Math.random() * itemPool.length)];
+            rm.pedestals.push({
+                x: canvas.width / 2, y: canvas.height / 2,
+                item: itm, collected: false
+            });
+        }
+        return rm;
+    }
+
+    // Canvas graphic render routines mapping borders & tiles structures
+    function drawRoomBorders() {
+        ctx.fillStyle = "#382e2e"; // Wall frame thickness background block layers
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = "#544646"; // Inner floor dimensions profile fields
+        ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
+
+        // Core grid accent tile overlay patterns
+        ctx.strokeStyle = "#403535";
+        ctx.lineWidth = 2;
+        for(let col=1; col<8; col++) {
+            ctx.beginPath();
+            ctx.moveTo(col * 80, 40);
+            ctx.lineTo(col * 80, canvas.height - 40);
+            ctx.stroke();
+        }
+        for(let rw=1; rw<6; rw++) {
+            ctx.beginPath();
+            ctx.moveTo(40, rw * 80);
+            ctx.lineTo(canvas.width - 40, rw * 80);
+            ctx.stroke();
+        }
+    }
+
+    // Render functional door threshold archways on layout perimeters
+    function drawDoors(rm) {
+        ctx.fillStyle = "#1c1616";
+        if (rm.doors.top) ctx.fillRect(canvas.width / 2 - 25, 20, 50, 20);
+        if (rm.doors.bottom) ctx.fillRect(canvas.width / 2 - 25, canvas.height - 40, 50, 20);
+        if (rm.doors.left) ctx.fillRect(20, canvas.height / 2 - 25, 20, 50);
+        if (rm.doors.right) ctx.fillRect(canvas.width - 40, canvas.height / 2 - 25, 20, 50);
+    }
+
+    // Doorway transition threshold navigation mechanics
+    function checkDoorTransitions() {
+        let rm = roomGrid[currentRoomY][currentRoomX];
+        if (!rm.cleared) return; // Keep player locked inside active combat rooms
+
+        // Top door step-through zone
+        if (rm.doors.top && player.y < 45 && Math.abs(player.x - canvas.width / 2) < 25) {
+            currentRoomY--;
+            player.y = canvas.height - 70;
+            tears = [];
+        }
+        // Bottom door step-through zone
+        else if (rm.doors.bottom && player.y > canvas.height - 45 && Math.abs(player.x - canvas.width / 2) < 25) {
+            currentRoomY++;
+            player.y = 70;
+            tears = [];
+        }
+        // Left door step-through zone
+        else if (rm.doors.left && player.x < 45 && Math.abs(player.y - canvas.height / 2) < 25) {
+            currentRoomX--;
+            player.x = canvas.width - 70;
+            tears = [];
+        }
+        // Right door step-through zone
+        else if (rm.doors.right && player.x > canvas.width - 45 && Math.abs(player.y - canvas.height / 2) < 25) {
+            currentRoomX++;
+            player.x = 70;
+            tears = [];
+        }
+    }
+
+    // ==========================================
+    // 👇 PART 4 BEGINS DIRECTLY BELOW THIS LINE 👇
+    // ==========================================
+    // Process shooting controls vector directional inputs
+    function checkShooting(now) {
+        let vx = 0, vy = 0;
+        if (keys['ArrowLeft']) vx = -1;
+        else if (keys['ArrowRight']) vx = 1;
+        else if (keys['ArrowUp']) vy = -1;
+        else if (keys['ArrowDown']) vy = 1;
+
+        if ((vx !== 0 || vy !== 0) && now - player.lastShot > player.fireRate) {
+            tears.push({
+                x: player.x, y: player.y,
+                vx: vx * 5.5, vy: vy * 5.5,
+                startX: player.x, startY: player.y,
+                damage: player.damage, r: 5, color: "#66ccff"
+            });
+            player.lastShot = now;
+        }
+    }
+
+    // Update coordinates, run tracking checks, and calculate physics increments
+    function loopGame() {
+        let now = performance.now();
+        let rm = roomGrid[currentRoomY][currentRoomX];
+
+        // 1. Vector Movement Translations
+        let mvx = 0, mvy = 0;
+        if (keys['w'] || keys['W']) mvy = -1;
+        if (keys['s'] || keys['S']) mvy = 1;
+        if (keys['a'] || keys['A']) mvx = -1;
+        if (keys['d'] || keys['D']) mvx = 1;
+
+        // Apply velocities with containment clamps
+        player.x += mvx * player.speed;
+        player.y += mvy * player.speed;
+        
+        player.x = Math.max(55, Math.min(canvas.width - 55, player.x));
+        player.y = Math.max(55, Math.min(canvas.height - 55, player.y));
+
+        checkDoorTransitions();
+        checkShooting(now);
+
+        // 2. Tear Trajectory Cycles & Impact Evaluation
+        for (let i = tears.length - 1; i >= 0; i--) {
+            let t = tears[i];
+            t.x += t.vx;
+            t.y += t.vy;
+
+            // Range decay wall-check limits
+            let dist = Math.hypot(t.x - t.startX, t.y - t.startY);
+            if (dist > player.tearRange || t.x < 40 || t.x > canvas.width - 40 || t.y < 40 || t.y > canvas.height - 40) {
+                tears.splice(i, 1);
+                continue;
+            }
+
+            // Enemy hit check logic
+            for (let e of rm.enemies) {
+                if (Math.hypot(t.x - e.x, t.y - e.y) < t.r + e.r) {
+                    e.hp -= t.damage;
+                    
+                    // Blood splatter particle explosions
+                    for (let p=0; p<4; p++) {
+                        particles.push({
+                            x: e.x, y: e.y,
+                            vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3,
+                            life: 15, color: "#990000"
+                        });
+                    }
+                    tears.splice(i, 1);
+                    break;
+                }
+            }
+        }
+
+        // 3. Enemy Track AI Algorithms
+        for (let i = rm.enemies.length - 1; i >= 0; i--) {
+            let e = rm.enemies[i];
+            if (e.hp <= 0) {
+                rm.enemies.splice(i, 1);
+                continue;
+            }
+
+            // Track towards player node coordinates vectors
+            let angle = Math.atan2(player.y - e.y, player.x - e.x);
+            e.x += Math.cos(angle) * e.speed;
+            e.y += Math.sin(angle) * e.speed;
+
+            // Player hit validation checks
+            if (Math.hypot(player.x - e.x, player.y - e.y) < player.r + e.r) {
+                player.hp = Math.max(0, player.hp - 0.5); // Take half a heart of damage
+                updateStatsPanel();
+                
+                // Knockback effect separator
+                player.x += Math.cos(angle) * 15;
+                player.y += Math.sin(angle) * 15;
+
+                if (player.hp <= 0) {
+                    alert(`Run Ended in Basement Floor ${floorNumber}. Press OK to try again.`);
+                    floorNumber = 1;
+                    player.maxHp = 3; player.hp = 3;
+                    player.damage = 3.5; player.fireRate = 600; player.speed = 3.5; player.tearRange = 250;
+                    document.getElementById('itemLog').innerText = "No items collected.";
+                    generateFloor();
+                    currentRoomX = 2; currentRoomY = 2;
+                    player.x = canvas.width/2; player.y = canvas.height/2;
+                    updateStatsPanel();
+                }
+            }
+        }
+
+        // Combat clear evaluation state switch
+        if (rm.enemies.length === 0 && !rm.cleared) {
+            rm.cleared = true;
+            // Spawns exit trapdoor if the boss is cleared
+            if (rm.type === "Boss") {
+                rm.trapdoors.push({ x: canvas.width / 2, y: canvas.height / 2 });
+            }
+        }
+
+        // 4. Item Pedestal Item Room Collisions Check
+        for (let p of rm.pedestals) {
+            if (!p.collected && Math.hypot(player.x - p.x, player.y - p.y) < player.r + 15) {
+                p.collected = true;
+                p.item.mod(player); // Apply unique modification mechanics formula rules instantly
+                
+                let log = document.getElementById('itemLog');
+                if (log.innerText === "No items collected.") log.innerText = "";
+                log.innerHTML += `• <strong>${p.item.name}</strong><br><span style="color:#8a7361">${p.item.desc}</span><br>`;
+                updateStatsPanel();
+            }
+        }
+
+        // 5. Next Floor Trapdoor Progress Collisions Check
+        for (let td of rm.trapdoors) {
+            if (Math.hypot(player.x - td.x, player.y - td.y) < player.r + 16) {
+                floorNumber++;
+                generateFloor();
+                currentRoomX = 2; currentRoomY = 2; // Return to centering grid block node
+                player.x = canvas.width / 2; player.y = canvas.height / 2;
+                tears = [];
+                updateStatsPanel();
+                alert(`Descended deeper into Floor ${floorNumber}. The basement grows harder...`);
+            }
+        }
+
+        // Particles decay increment tracking loops
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy; p.life--;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // Render Canvas graphics viewports updates layers
+        drawRoomBorders();
+        drawDoors(rm);
+
+        // Render Trapdoors
+        for (let td of rm.trapdoors) {
+            ctx.fillStyle = "#000";
+            ctx.beginPath(); ctx.arc(td.x, td.y, 16, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = "#423535"; ctx.lineWidth = 3; ctx.stroke();
+        }
+
+        // Render Item Pedestals
+        for (let p of rm.pedestals) {
+            if (!p.collected) {
+                ctx.fillStyle = "#8c7a6b"; // Pedestal pillar column block
+                ctx.fillRect(p.x - 12, p.y + 2, 24, 14);
+                ctx.fillStyle = p.item.color; // The floating item graphic asset capsule
+                ctx.beginPath(); ctx.arc(p.x, p.y - 10 + Math.sin(now / 150) * 3, 10, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
+        // Render Blood Splatter Particles
+        for (let p of particles) {
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 3, 3);
+        }
+
+        // Render Tears
+        for (let t of tears) {
+            ctx.fillStyle = t.color;
+            ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Render Enemies / Boss Monsters
+        for (let e of rm.enemies) {
+            ctx.fillStyle = e.color;
+            ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill();
+            
+            // Health indicator overlay profiles bar
+            if (e.hp < e.maxHp) {
+                ctx.fillStyle = "#331a1a"; ctx.fillRect(e.x - 15, e.y - e.r - 10, 30, 4);
+                ctx.fillStyle = "#ff3333"; ctx.fillRect(e.x - 15, e.y - e.r - 10, (e.hp / e.maxHp) * 30, 4);
+            }
+        }
+
+        // Render Player Isaac Body Asset Circle
+        ctx.fillStyle = "#fce8d5"; // Flesh head
+        ctx.beginPath(); ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#000"; // Isaac cry eyes accents indicators
+        ctx.fillRect(player.x - 7, player.y - 4, 3, 5); ctx.fillRect(player.x + 4, player.y - 4, 3, 5);
+        ctx.fillStyle = "#66ccff"; // Tear lines stream tracking tracks
+        ctx.fillRect(player.x - 7, player.y + 1, 2, 4); ctx.fillRect(player.x + 5, player.y + 1, 2, 4);
+
+        requestAnimationFrame(loopGame);
+    }
+
+    function updateStatsPanel() {
+        document.getElementById('statFloor').innerText = floorNumber;
+        document.getElementById('statHP').innerText = `${player.hp}/${player.maxHp}`;
+        document.getElementById('statDMG').innerText = player.damage.toFixed(1);
+        // Transform internal fire rate tick numbers into an easily readable speed multiplier gauge
+        document.getElementById('statFire').innerText = (600 / player.fireRate).toFixed(1);
+        document.getElementById('statSpeed').innerText = player.speed.toFixed(1);
+    }
+
+    // Input hooks listeners mapping triggers
+    window.addEventListener('keydown', e => keys[e.key] = true);
+    window.addEventListener('keyup', e => keys[e.key] = false);
+
+    // Initializers boot launch runners configurations
+    generateFloor();
+    updateStatsPanel();
+    requestAnimationFrame(loopGame);
+</script>
+</body>
+</html>
+
