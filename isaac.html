@@ -185,108 +185,20 @@
     // ==========================================
     // 👇 PART 3 BEGINS DIRECTLY BELOW THIS LINE 👇
     // ==========================================
-    // Procedural Floor generation script building interconnected layout spaces 
-    function generateFloor() {
-        roomGrid = Array(5).fill(null).map(() => Array(5).fill(null));
-        
-        // Spawn root anchor starting map node directly center inside grid rows index maps
-        roomGrid[2][2] = createRoom("Start");
-
-        // Force item room path attachment points boundaries
-        roomGrid[1][2] = createRoom("Item");
-        
-        // Force monster combat arenas
-        roomGrid[2][1] = createRoom("Monster");
-        roomGrid[2][3] = createRoom("Monster");
-
-        // Boss node locked at edge extremes bounds
-        roomGrid[3][2] = createRoom("Boss");
-
-        // Establish directional entry doorway pathways between interconnected nodes
-        for(let y=0; y<5; y++) {
-            for(let x=0; x<5; x++) {
-                if (roomGrid[y][x]) {
-                    if (y > 0 && roomGrid[y-1][x]) roomGrid[y][x].doors.top = true;
-                    if (y < 4 && roomGrid[y+1][x]) roomGrid[y][x].doors.bottom = true;
-                    if (x > 0 && roomGrid[y][x-1]) roomGrid[y][x].doors.left = true;
-                    if (x < 4 && roomGrid[y][x+1]) roomGrid[y][x].doors.right = true;
-                }
-            }
-        }
-    }
-
-    function createRoom(type) {
-        let rm = {
-            type: type, cleared: (type === "Start"),
-            doors: { top: false, bottom: false, left: false, right: false },
-            enemies: [], pedestals: [], trapdoors: []
-        };
-
-        // Inject elements vectors depending on mapped conditions profiles
-        if (type === "Monster") {
-            let count = 2 + Math.floor(floorNumber * 0.5);
-            for(let i=0; i<count; i++) {
-                rm.enemies.push({
-                    x: 100 + Math.random() * (canvas.width - 200),
-                    y: 100 + Math.random() * (canvas.height - 200),
-                    hp: 8 + (floorNumber * 2), maxHp: 8 + (floorNumber * 2),
-                    r: 12, speed: 1.2 + (Math.random() * 0.5), type: "Fly",
-                    color: "#cc3333"
-                });
-            }
-        } else if (type === "Boss") {
-            rm.enemies.push({
-                x: canvas.width / 2, y: canvas.height / 2,
-                hp: 40 + (floorNumber * 20), maxHp: 40 + (floorNumber * 20),
-                r: 28, speed: 1.0, type: "Monstro",
-                color: "#9c2e2e", isBoss: true
-            });
-        } else if (type === "Item") {
-            // Draw random pedestal roll
-            let itm = itemPool[Math.floor(Math.random() * itemPool.length)];
-            rm.pedestals.push({
-                x: canvas.width / 2, y: canvas.height / 2,
-                item: itm, collected: false
-            });
-        }
-        return rm;
-    }
-
-    // Canvas graphic render routines mapping borders & tiles structures
-    function drawRoomBorders() {
-        ctx.fillStyle = "#382e2e"; // Wall frame thickness background block layers
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = "#544646"; // Inner floor dimensions profile fields
-        ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
-
-        // Core grid accent tile overlay patterns
-        ctx.strokeStyle = "#403535";
-        ctx.lineWidth = 2;
-        for(let col=1; col<8; col++) {
-            ctx.beginPath();
-            ctx.moveTo(col * 80, 40);
-            ctx.lineTo(col * 80, canvas.height - 40);
-            ctx.stroke();
-        }
-        for(let rw=1; rw<6; rw++) {
-            ctx.beginPath();
-            ctx.moveTo(40, rw * 80);
-            ctx.lineTo(canvas.width - 40, rw * 80);
-            ctx.stroke();
-        }
-    }
-
     // Render functional door threshold archways on layout perimeters
     function drawDoors(rm) {
         ctx.fillStyle = "#1c1616";
+        // Top Door
         if (rm.doors.top) ctx.fillRect(canvas.width / 2 - 25, 20, 50, 20);
+        // Bottom Door
         if (rm.doors.bottom) ctx.fillRect(canvas.width / 2 - 25, canvas.height - 40, 50, 20);
+        // Left Door
         if (rm.doors.left) ctx.fillRect(20, canvas.height / 2 - 25, 20, 50);
+        // Right Door
         if (rm.doors.right) ctx.fillRect(canvas.width - 40, canvas.height / 2 - 25, 20, 50);
     }
 
-    // Doorway transition threshold navigation mechanics
+    // FIXED: Doorway transition threshold navigation mechanics now use clear width/height values
     function checkDoorTransitions() {
         let rm = roomGrid[currentRoomY][currentRoomX];
         if (!rm.cleared) return; // Keep player locked inside active combat rooms
@@ -316,6 +228,12 @@
             tears = [];
         }
     }
+
+    // ==========================================
+    // 👇 PART 4 BEGINS DIRECTLY BELOW THIS LINE 👇
+    // ==========================================
+
+           
 
     // ==========================================
     // 👇 PART 4 BEGINS DIRECTLY BELOW THIS LINE 👇
