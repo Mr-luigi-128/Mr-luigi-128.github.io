@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemon Clicker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #fcf8e3;
+            color: #333;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #d4a017;
+            text-shadow: 2px 2px 0px #fff, 3px 3px 0px #888;
+            margin: 0 0 5px 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 900px;
+            width: 100%;
+            background: #fff;
+            padding: 25px;
+            border: 3px solid #333;
+            box-shadow: 6px 6px 0px #888;
+        }
+
+        /* Active Left Column: Clicking Area */
+        .clicker-section {
+            flex: 1;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 2px dashed #ccc;
+            padding-right: 15px;
+        }
+
+        .stats-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .count-val {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #111;
+        }
+
+        .rate-val {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* The Giant Lemon Button */
+        .lemon-btn {
+            font-size: 7rem;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.05s ease;
+            margin: 20px 0;
+            display: inline-block;
+            filter: drop-shadow(3px 5px 0px rgba(0,0,0,0.15));
+        }
+
+        .lemon-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Right Column: Upgrades Panel */
+        .upgrades-section {
+            flex: 1.2;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .upgrade-card {
+            background: #fdfdfd;
+            border: 2px solid #333;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .upgrade-card:not(.disabled):hover {
+            background: #fff9d6;
+            cursor: pointer;
+        }
+
+        .upgrade-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #eee;
+        }
+
+        .upgrade-info h3 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .upgrade-info p {
+            margin: 3px 0 0 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .upgrade-cost {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #b8860b;
+        }
+
+        /* Rebirth Banner Style */
+        .rebirth-card {
+            background: #fff2cc;
+            border: 2px solid #e6b800;
+            box-shadow: 3px 3px 0px #ffe599;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 25px;
+            color: #666;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        @media (max-width: 650px) {
+            .clicker-section {
+                border-right: none;
+                border-bottom: 2px dashed #ccc;
+                padding-right: 0;
+                padding-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Lemon Clicker</h1>
+
+    <div class="game-container">
+        <!-- Left Side: Main Interaction Interface -->
+        <div class="clicker-section">
+            <div class="stats-display">
+                <div class="count-val"><span id="lemonCount">0</span> Lemons</div>
+                <div class="rate-val">per second: <span id="lpsCount">0</span></div>
+            </div>
+
+            <!-- Giant Clickable Lemon Asset -->
+            <div id="lemonButton" class="lemon-btn">🍋</div>
+        </div>
+
+        <!-- Right Side: Upgrades Cabinets Market -->
+        <div class="upgrades-section">
+            <div class="section-title">
+                <span>Market Upgrades</span>
+                <span id="multiplierDisplay" style="font-size: 0.85rem; color:#888;">Boost: 1.0x</span>
+            </div>
+
+            <!-- Auto Clicker Upgrade 1 -->
+            <div class="upgrade-card disabled" id="upg_0" onclick="buyUpgrade(0)">
+                <div class="upgrade-info">
+                    <h3>Lemon Squeezer (<span id="count_0">0</span>)</h3>
+                    <p>Automates squeezing. Adds +0.1 lemons/sec.</p>
+                </div>
+                <div class="upgrade-cost" id="cost_0">15</div>
+            </div>
+
+            <!-- Auto Clicker Upgrade 2 -->
+            <div class="upgrade-card disabled" id="upg_1" onclick="buyUpgrade(1)">
+                <div class="upgrade-info">
+                    <h3>Micro Zester (<span id="count_1">0</span>)</h3>
+                    <p>Scrapes rinds. Adds +1.0 lemons/sec.</p>
+                </div>
+                <div class="upgrade-cost" id="cost_1">100</div>
+            </div>
+
+            <!-- Auto Clicker Upgrade 3 -->
+            <div class="upgrade-card disabled" id="upg_2" onclick="buyUpgrade(2)">
+                <div class="upgrade-info">
+                    <h3>Juice Presser (<span id="count_2">0</span>)</h3>
+                    <p>Heavy extraction. Adds +8.0 lemons/sec.</p>
+                </div>
+                <div class="upgrade-cost" id="cost_2">1100</div>
+            </div>
+
+            <!-- Permanent Click Multiplier Upgrade -->
+            <div class="upgrade-card disabled" id="upg_3" onclick="buyMultiplier()">
+                <div class="upgrade-info">
+                    <h3>Sharper Knives (<span id="multLevel">0</span>)</h3>
+                    <p>Doubles manual user click power value gains.</p>
+                </div>
+                <div class="upgrade-cost" id="cost_mult">50</div>
+            </div>
+
+            <!-- Prestige Rebirth Upgrade Row -->
+            <div class="section-title" style="margin-top: 10px;">Prestige Assembly</div>
+            <div class="upgrade-card rebirth-card disabled" id="rebirthBtn" onclick="triggerRebirth()">
+                <div class="upgrade-info">
+                    <h3>Rebirth Master Tier (<span id="rebirthCount">0</span>)</h3>
+                    <p>Reset balance for a permanent <strong>+50% output speed boost</strong>.</p>
+                </div>
+                <div class="upgrade-cost" id="rebirthCost">5000</div>
+            </div>
+        </div>
+    </div>
+
+    <a href="./index.html" class="back-btn">Return to Hub Menu</a>
+
+    <!-- ========================================== -->
+    <!-- 👇 PART 2 BEGINS DIRECTLY BELOW THIS LINE 👇 -->
+    <!-- ========================================== -->
+<script>
+    // Core game state counters
+    let lemons = 0;
+    let clickPower = 1;
+    let multiplierLevel = 0;
+    let rebirths = 0;
+
+    // Upgrades configuration tracking structures (BaseCost, LPS addition, Count)
+    const upgrades = [
+        { baseCost: 15, lps: 0.1, count: 0 },
+        { baseCost: 100, lps: 1.0, count: 0 },
+        { baseCost: 1100, lps: 8.0, count: 0 }
+    ];
+
+    let multUpgradeCost = 50;
+    let rebirthCost = 5000;
+
+    // Elements hooks
+    const lemonBtn = document.getElementById('lemonButton');
+    const lemonCountEl = document.getElementById('lemonCount');
+    const lpsCountEl = document.getElementById('lpsCount');
+    const multLevelEl = document.getElementById('multLevel');
+    const costMultEl = document.getElementById('cost_mult');
+    const rebirthCountEl = document.getElementById('rebirthCount');
+    const rebirthCostEl = document.getElementById('rebirthCost');
+    const multiplierDisplayEl = document.getElementById('multiplierDisplay');
+
+    // 1. Manual Lemon Clicking Action
+    lemonBtn.addEventListener('click', () => {
+        lemons += clickPower * getRebirthMultiplier();
+        updateDisplay();
+    });
+
+    // Compute active current prestige modifier multiplier boost
+    function getRebirthMultiplier() {
+        // Each rebirth grants a stacking +50% (+0.5) permanent production boost
+        return 1 + (rebirths * 0.5);
+    }
+
+    // Compute active combined lemons earned per second rate
+    function getLemonsPerSecond() {
+        let baseLps = 0;
+        upgrades.forEach(upg => {
+            baseLps += upg.count * upg.lps;
+        });
+        return baseLps * getRebirthMultiplier();
+    }
+
+    // 2. Market Item Purchasing Engine
+    function buyUpgrade(index) {
+        const upg = upgrades[index];
+        const currentCost = Math.floor(upg.baseCost * Math.pow(1.15, upg.count));
+
+        if (lemons >= currentCost) {
+            lemons -= currentCost;
+            upg.count++;
+            
+            // Re-render UI indicators
+            document.getElementById(`count_${index}`).innerText = upg.count;
+            updateDisplay();
+        }
+    }
+
+    // Purchase click power multiplier tier upgrades
+    function buyMultiplier() {
+        if (lemons >= multUpgradeCost) {
+            lemons -= multUpgradeCost;
+            multiplierLevel++;
+            clickPower = Math.pow(2, multiplierLevel); // Exponentially doubles manual click output power value
+            
+            multUpgradeCost = Math.floor(multUpgradeCost * 2.5); // Increase price scaling multiplier steps
+            costMultEl.innerText = multUpgradeCost;
+            multLevelEl.innerText = multiplierLevel;
+            updateDisplay();
+        }
+    }
+
+    // 3. Prestige Rebirth Trigger Cycle Reset Mechanics
+    function triggerRebirth() {
+        if (lemons >= rebirthCost) {
+            // Confirm choice alert popup
+            if (confirm("Are you sure you want to rebirth? This resets your lemons and market upgrades for a permanent +50% production boost!")) {
+                rebirths++;
+                
+                // Clear active running balances
+                lemons = 0;
+                multiplierLevel = 0;
+                clickPower = 1;
+                multUpgradeCost = 50;
+                
+                // Clear auto-clickers count tracks
+                upgrades.forEach(upg => {
+                    upg.count = 0;
+                });
+
+                // Increase base milestone goal cost for subsequent tier completions
+                rebirthCost = Math.floor(rebirthCost * 4);
+
+                // Full UI resets updates
+                upgrades.forEach((upg, i) => {
+                    document.getElementById(`count_${i}`).innerText = 0;
+                });
+                costMultEl.innerText = multUpgradeCost;
+                multLevelEl.innerText = multiplierLevel;
+                rebirthCountEl.innerText = rebirths;
+                rebirthCostEl.innerText = rebirthCost;
+
+                updateDisplay();
+            }
+        }
+    }
+
+    // 4. Interface Updates Rendering Routine
+    function updateDisplay() {
+        // Floor values to avoid layout decimal overflow bugs
+        lemonCountEl.innerText = Math.floor(lemons);
+        
+        const currentLps = getLemonsPerSecond();
+        // Keep single decimal formatting for slow automation increments
+        lpsCountEl.innerText = currentLps.toFixed(1);
+
+        multiplierDisplayEl.innerText = `Boost: ${getRebirthMultiplier().toFixed(1)}x`;
+
+        // Evaluate unlocking configurations for standard button cards elements
+        upgrades.forEach((upg, i) => {
+            const cost = Math.floor(upg.baseCost * Math.pow(1.15, upg.count));
+            const card = document.getElementById(`upg_${i}`);
+            document.getElementById(`cost_${i}`).innerText = cost;
+
+            if (lemons >= cost) {
+                card.classList.remove('disabled');
+            } else {
+                card.classList.add('disabled');
+            }
+        });
+
+        // Toggle click multiplier button status
+        const multCard = document.getElementById('upg_3');
+        if (lemons >= multUpgradeCost) {
+            multCard.classList.remove('disabled');
+        } else {
+            multCard.classList.add('disabled');
+        }
+
+        // Toggle prestige reset button status
+        const rbBtn = document.getElementById('rebirthBtn');
+        if (lemons >= rebirthCost) {
+            rbBtn.classList.remove('disabled');
+        } else {
+            rbBtn.classList.add('disabled');
+        }
+    }
+
+    // 5. Idle Game Loop Ticker (Runs 10 times a second for fluid number scaling)
+    setInterval(() => {
+        const lps = getLemonsPerSecond();
+        if (lps > 0) {
+            lemons += lps / 10;
+            updateDisplay();
+        }
+    }, 100);
+
+    // Run Initializers
+    updateDisplay();
+</script>
+</body>
+</html>
