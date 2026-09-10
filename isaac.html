@@ -118,7 +118,7 @@
         <!-- Main Game Viewport Layout -->
         <canvas id="isaacCanvas" width="640" height="480"></canvas>
 
-        <!-- Sidebar Display Layout -->
+        <!-- Sidebar Diagnostics Display Panel -->
         <div class="sidebar">
             <div class="box">
                 <h2>Stats</h2>
@@ -142,10 +142,11 @@
             </div>
         </div>
     </div>
-<script>
+
     <!-- ========================================== -->
     <!-- 👇 PART 2 BEGINS DIRECTLY BELOW THIS LINE 👇 -->
     <!-- ========================================== -->
+<script>
     const canvas = document.getElementById('isaacCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -165,7 +166,7 @@
 
     // Core global coordinates tracker structures
     let floorNumber = 1;
-    let currentRoomX = 2; // Fixed map layout grid coordinates index anchors
+    let currentRoomX = 2; // Floor rooms map layout grid coordinates index anchors
     let currentRoomY = 2;
     let roomGrid = [];     // 5x5 Matrix space hosting the map structure grid layout
 
@@ -192,11 +193,10 @@
             roomGrid.push([null, null, null, null, null]);
         }
 
-        // Spawn root anchor starting map node directly center inside grid rows index maps
+        // FIXED: Assign rooms directly to specific grid index coordinates instead of overriding the grid array
         roomGrid[2][2] = createRoom("Start");
         roomGrid[2][2].cleared = true; // Starting room begins cleared
 
-        // Map relative grid coordinate slots safely to branches away from the center
         roomGrid[1][2] = createRoom("Monster"); // Top room
         roomGrid[3][2] = createRoom("Monster"); // Bottom room
         roomGrid[2][1] = createRoom("Item");    // Left room
