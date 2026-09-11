@@ -185,117 +185,6 @@
     // ==========================================
     // 👇 PART 3 BEGINS DIRECTLY BELOW THIS LINE 👇
     // ==========================================
-    function generateFloor() {
-        roomGrid = [];
-        for (let y = 0; y < 5; y++) {
-            roomGrid.push([null, null, null, null, null]);
-        }
-
-        // CORRECT: Use proper 2D array indices [row][col]
-        currentRoomX = 2;
-        currentRoomY = 2;
-        roomGrid[2][2] = createRoom("Start");
-        roomGrid[2][2].cleared = true; 
-
-        roomGrid[1][2] = createRoom("Monster"); // Top Room (Row 1, Col 2)
-        roomGrid[3][2] = createRoom("Monster"); // Bottom Room (Row 3, Col 2)
-        roomGrid[2][1] = createRoom("Item");    // Left Room (Row 2, Col 1)
-        roomGrid[2][3] = createRoom("Boss");    // Right Room (Row 2, Col 3)
-
-        // Establish directional entry doorway pathways between interconnected nodes
-        for (let y = 0; y < 5; y++) {
-            for (let x = 0; x < 5; x++) {
-                if (roomGrid[y][x]) {
-                    if (y > 0 && roomGrid[y-1][x]) roomGrid[y][x].doors.top = true;
-                    if (y < 4 && roomGrid[y+1][x]) roomGrid[y][x].doors.bottom = true;
-                    if (x > 0 && roomGrid[y][x-1]) roomGrid[y][x].doors.left = true;
-                    if (x < 4 && roomGrid[y][x+1]) roomGrid[y][x].doors.right = true;
-                }
-            }
-        }
-    }
-
-    function createRoom(type) {
-        let rm = {
-            type: type, cleared: false,
-            doors: { top: false, bottom: false, left: false, right: false },
-            enemies: [], pedestals: [], trapdoors: []
-        };
-
-        if (type === "Monster") {
-            let count = 2 + Math.floor(floorNumber * 0.5);
-            for (let i = 0; i < count; i++) {
-                rm.enemies.push({
-                    x: 100 + Math.random() * (canvas.width - 200),
-                    y: 100 + Math.random() * (canvas.height - 200),
-                    hp: 6 + (floorNumber * 2), maxHp: 6 + (floorNumber * 2),
-                    r: 12, speed: 1.2 + (Math.random() * 0.4), type: "Fly",
-                    color: "#cc3333"
-                });
-            }
-        } else if (type === "Boss") {
-            rm.enemies.push({
-                x: canvas.width / 2, y: canvas.height / 2,
-                hp: 35 + (floorNumber * 15), maxHp: 35 + (floorNumber * 15),
-                r: 26, speed: 1.0, type: "Monstro",
-                color: "#9c2e2e", isBoss: true
-            });
-        } else if (type === "Item") {
-            let itm = itemPool[Math.floor(Math.random() * itemPool.length)];
-            rm.pedestals.push({
-                x: canvas.width / 2, y: canvas.height / 2,
-                item: itm, collected: false
-            });
-        }
-        return rm;
-    }
-
-    function drawRoomBorders() {
-        ctx.fillStyle = "#382e2e"; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#544646"; 
-        ctx.fillRect(40, 40, canvas.width - 80, canvas.height - 80);
-
-        ctx.strokeStyle = "#403535";
-        ctx.lineWidth = 2;
-        for (let col = 1; col < 8; col++) {
-            ctx.beginPath(); ctx.moveTo(col * 80, 40); ctx.lineTo(col * 80, canvas.height - 40); ctx.stroke();
-        }
-        for (let rw = 1; rw < 6; rw++) {
-            ctx.beginPath(); ctx.moveTo(40, rw * 80); ctx.lineTo(canvas.width - 40, rw * 80); ctx.stroke();
-        }
-    }
-
-    function drawDoors(rm) {
-        ctx.fillStyle = "#1c1616";
-        if (rm.doors.top) ctx.fillRect(canvas.width / 2 - 25, 20, 50, 20);
-        if (rm.doors.bottom) ctx.fillRect(canvas.width / 2 - 25, canvas.height - 40, 50, 20);
-        if (rm.doors.left) ctx.fillRect(20, canvas.height / 2 - 25, 20, 50);
-        if (rm.doors.right) ctx.fillRect(canvas.width - 40, canvas.height / 2 - 25, 20, 50);
-    }
-
-    function checkDoorTransitions() {
-        let rm = roomGrid[currentRoomY][currentRoomX];
-        if (!rm || !rm.cleared) return; 
-
-        if (rm.doors.top && player.y <= 42 && Math.abs(player.x - canvas.width / 2) < 30) {
-            currentRoomY--; player.y = canvas.height - 55; tears = [];
-        } else if (rm.doors.bottom && player.y >= canvas.height - 42 && Math.abs(player.x - canvas.width / 2) < 30) {
-            currentRoomY++; player.y = 55; tears = [];
-        } else if (rm.doors.left && player.x <= 42 && Math.abs(player.y - canvas.height / 2) < 30) {
-            currentRoomX--; player.x = canvas.width - 55; tears = [];
-        } else if (rm.doors.right && player.x >= canvas.width - 42 && Math.abs(player.y - canvas.height / 2) < 30) {
-            currentRoomX++; player.x = 55; tears = [];
-        }
-    }
-
-    // ==========================================
-    // 👇 PART 4 BEGINS DIRECTLY BELOW THIS LINE 👇
-    // ==========================================
-
-    // ==========================================
-    // 👇 PART 4 BEGINS DIRECTLY BELOW THIS LINE 👇
-    // ==========================================
     // Process shooting controls vector directional inputs
     function checkShooting(now) {
         let vx = 0, vy = 0;
@@ -331,7 +220,8 @@
         player.x += mvx * player.speed;
         player.y += mvy * player.speed;
         
-        player.x = Math.max(30, Math.min(canvas.width 30, player.x));
+        // FIXED BOUNDARY LIMITS: Allows the player to cross the threshold into the doors
+        player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
         player.y = Math.max(30, Math.min(canvas.height - 30, player.y));
 
         checkDoorTransitions();
