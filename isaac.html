@@ -167,13 +167,13 @@
         { id: 1, name: "The Sad Onion", desc: "Tears up (+0.4 Tear Rate)", color: "#00ffcc", mod: (p) => p.fireRate = Math.max(150, p.fireRate - 150) },
         { id: 2, name: "The Pact", desc: "Damage + Tears up (+1.0 DMG, +0.2 Fire Rate)", color: "#7a0099", mod: (p) => { p.damage += 1.0; p.fireRate = Math.max(150, p.fireRate - 80); } },
         { id: 3, name: "Magic Mushroom", desc: "All stats up! (+1.5 DMG, +1 Max HP, +1 Speed)", color: "#ff3333", mod: (p) => { p.damage += 1.5; p.maxHp += 1; p.hp += 1; p.speed += 1; } },
-        { id: 4, name: "The Halo", desc: "All stats slightly up (+0.5 DMG, +50 Fire Rate, +0.5 Speed)", color: "#ffff99", mod: (p) => { p.damage += 0.5; p.fireRate = Math.max(150, p.fireRate - 50); p.speed += 0.5; } },
-        { id: 5, name: "Pentagram", desc: "Damage up (+1.5 DMG)", color: "#ff0000", mod: (p) => p.damage += 1.5 },
+        { id: 4, name: "The Halo", desc: "All stats slightly up (+0.5 DMG, +50 Fire Rate, +0.5 Speed)", color: "#ffff99", mod: (p) => { p.damage += 0.5; p.fireRate = Math.max(150, p.fireRate - 5000); p.speed += 0.5; } },
+        { id: 5, name: "Pentagram", desc: "Damage up (+3 DMG)", color: "#ff0000", mod: (p) => p.damage += 3 },
         { id: 6, name: "Raw Liver", desc: "Health up (+2 Max HP fields)", color: "#994d00", mod: (p) => { p.maxHp += 2; p.hp += 2; } },
         { id: 7, name: "Spoon Bender", desc: "Homing Tears! (Stacking tracks tighter)", color: "#cc33ff", mod: (p) => p.homingLevel += 1 },
-        { id: 8, name: "Ipecac", desc: "Explosive Tears! (Stacking blast radius splits)", color: "#339933", mod: (p) => { p.damage += 2.0; p.explosiveLevel += 1; p.fireRate += 100; } },
+        { id: 8, name: "Ipecac", desc: "Explosive Tears! (Stacking blast radius splits)", color: "#339933", mod: (p) => { p.damage += 2.0; p.explosiveLevel += 100; p.fireRate += 100; } },
         { id: 9, name: "Wooden Spoon", desc: "Speed up (+1.5 Speed)", color: "#804000", mod: (p) => p.speed += 1.5 },
-        { id: 10, name: "Breakfast", desc: "Health up (+1 Max HP container)", color: "#ffffff", mod: (p) => { p.maxHp += 1; p.hp += 1; } }
+        { id: 10, name: "Breakfast", desc: "Health up (+1 Max HP container)", color: "#ffffff", mod: (p) => { p.maxHp += 1; p.hp += 1000; } }
     ];
 
     // Core global coordinates tracker structures
